@@ -1,131 +1,289 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Clever | Portal</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-      background: linear-gradient(135deg, #6a5acd, #ff6ec7, #4cc9f0, #ffe066);
-      background-size: 400% 400%;
-      animation: bgShift 15s ease infinite;
-      color: white;
-    }
-
-    @keyframes bgShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* Fake Clever login UI */
-    #clever-page {
-      display: block;
-      padding-top: 80px;
-      backdrop-filter: blur(20px);
-    }
-
-    #clever-page img {
-      width: 160px;
-      opacity: 0.95;
-      filter: drop-shadow(0 0 10px rgba(255,255,255,0.7));
-    }
-
-    #clever-page h2 {
-      color: white;
-      font-size: 30px;
-      text-shadow: 0 0 8px rgba(0,0,0,0.3);
-    }
-
-    button {
-      margin-top: 15px;
-      background: #2d6cdf;
-      color: white;
-      border: none;
-      padding: 12px 22px;
-      font-size: 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    button:hover {
-      background: #1b4fad;
-    }
-
-    /* Gaming page */
-    #games-page {
-      display: none;
-      padding: 40px;
-    }
-
-    #games-page h1 {
-      font-size: 38px;
-      color: white;
-      text-shadow: 0 0 8px rgba(0,0,0,0.4);
-    }
-
-    a.game-link {
-      display: block;
-      margin: 12px 0;
-      font-size: 22px;
-      text-decoration: none;
-      color: #fff;
-      padding: 10px;
-      border-radius: 10px;
-      background: rgba(0,0,0,0.25);
-      backdrop-filter: blur(6px);
-      transition: 0.3s;
-    }
-
-    a.game-link:hover {
-      background: rgba(255,255,255,0.3);
-      transform: scale(1.05);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fun Arcade</title>
+<style>
+body { margin:0; padding:0; background:black; font-family: Arial,sans-serif; color:white; overflow-x:hidden; }
+h1,h2{text-align:center;margin:10px 0;}
+.game-container{position: relative; width:90%; max-width:1200px; margin:20px auto; background:#111; padding:20px; border-radius:10px; overflow:hidden;}
+.game-button{display:block; width:100%; padding:15px; margin:15px 0; font-size:18px; background:#222; border:none; border-radius:5px; color:white; cursor:pointer; transition:0.2s;}
+.game-button:hover { background:#444; }
+canvas { position:absolute; top:0; left:0; z-index:0; }
+.game-content { position: relative; z-index:1; }
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); justify-content:center; align-items:center; z-index:10; }
+.modal-content { position:relative; width:90%; max-width:1000px; height:80%; background:#111; border-radius:10px; display:flex; flex-direction:column; align-items:center; padding:10px; overflow:auto; }
+.close-btn { margin-top:10px; padding:10px 20px; font-size:16px; background:#222; border:none; border-radius:5px; color:white; cursor:pointer; }
+.close-btn:hover { background:#444; }
+.memory-grid { display:grid; grid-gap:10px; justify-content:center; }
+.memory-card { width:80px; height:80px; background:#222; font-size:40px; color:white; border:none; border-radius:5px; cursor:pointer; }
+.memory-card.flipped { background:#444; }
+button.shop-btn { padding:10px 15px; margin:5px; border-radius:5px; background:#333; color:white; border:none; cursor:pointer; }
+button.shop-btn:hover { background:#555; }
+</style>
 </head>
-
 <body>
 
-  <!-- Fake Clever Page -->
-  <div id="clever-page">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Clever_logo.png">
-    <h2>Log in with your district</h2>
-    <p style="color: white; opacity: 0.9;">Choose your district to begin</p>
+<h1>🎮 Fun Arcade</h1>
 
-    <!-- Fake Clever Buttons -->
-    <button>Log in with Google</button><br>
-    <button>Log in with Clever Badge</button><br>
-    <button>Log in with District</button>
+<div class="game-container">
+  <canvas id="dotsCanvas"></canvas>
+  <div class="game-content">
+    <h2>Mini-Games</h2>
+    <button class="game-button" onclick="openGame('reaction')">Reaction Time</button>
+    <button class="game-button" onclick="openGame('memory')">Memory Match</button>
+    <button class="game-button" onclick="openGame('clicker')">Candy Clicker</button>
+    <button class="game-button" onclick="openGame('ballbounce')">Ping Pong</button>
+    <h2>Dinosaur Game</h2>
+    <button class="game-button" onclick="openGame('dino')">Play Dino</button>
+    <h2>Embedded Games</h2>
+    <button class="game-button" onclick="openGame('motox3m')">Moto X3M</button>
+    <button class="game-button" onclick="openGame('bouncemasters')">Bouncemasters</button>
+    <button class="game-button" onclick="openGame('gnmath')">GN Math</button>
   </div>
+</div>
 
-  <!-- Hidden Gaming Page -->
-  <div id="games-page">
-    <h1>🎮 Games</h1>
+<div id="gameModal" class="modal">
+  <div class="modal-content" id="modalContent"></div>
+  <button class="close-btn" onclick="closeGame()">Close Game</button>
+</div>
 
-    <!-- (You will add game links later) -->
-    <p style="opacity: 0.8;">Game list will go here.</p>
+<script>
+// ===== DOT BACKGROUND =====
+const canvas=document.getElementById('dotsCanvas');
+const ctx=canvas.getContext('2d');
+function resizeCanvas(){canvas.width=document.querySelector('.game-container').clientWidth; canvas.height=document.querySelector('.game-container').clientHeight;}
+resizeCanvas();
+window.addEventListener('resize',resizeCanvas);
 
-  </div>
+let mouse={x:-100,y:-100,radius:50};
+const dots=[];for(let i=0;i<50;i++){dots.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*2,vy:(Math.random()-0.5)*2,radius:5+Math.random()*5});}
+canvas.addEventListener('mousemove',e=>{const rect=canvas.getBoundingClientRect();mouse.x=e.clientX-rect.left;mouse.y=e.clientY-rect.top;});
+canvas.addEventListener('mouseleave',()=>{mouse.x=-100;mouse.y=-100;});
+function animateDots(){ctx.clearRect(0,0,canvas.width,canvas.height);for(let d of dots){d.x+=d.vx;d.y+=d.vy;if(d.x<d.radius||d.x>canvas.width-d.radius)d.vx*=-1;if(d.y<d.radius||d.y>canvas.height-d.radius)d.vy*=-1;let dx=d.x-mouse.x;let dy=d.y-mouse.y;let dist=Math.sqrt(dx*dx+dy*dy);if(dist<mouse.radius+d.radius){let angle=Math.atan2(dy,dx);let push=(mouse.radius+d.radius-dist)/2;d.x+=Math.cos(angle)*push;d.y+=Math.sin(angle)*push;}ctx.beginPath();ctx.arc(d.x,d.y,d.radius,0,Math.PI*2);ctx.fillStyle='white';ctx.fill();}requestAnimationFrame(animateDots);}
+animateDots();
 
-  <script>
-    // Secret "." key to switch to the game page
-    document.addEventListener("keydown", function(e) {
-      if (e.key === ".") {
-        document.getElementById("clever-page").style.display = "none";
-        document.getElementById("games-page").style.display = "block";
+// ===== GAME LOGIC =====
+let score=0,lives=3;
+let clickerInterval;
+const modal=document.getElementById('gameModal');
+const modalContent=document.getElementById('modalContent');
+
+function openGame(game){
+  score=0; lives=3;
+  modal.style.display="flex";
+  modalContent.innerHTML="";
+  clearInterval(clickerInterval);
+
+  const countersDiv = document.createElement('div');
+  countersDiv.style.textAlign="center"; countersDiv.style.margin="5px";
+  countersDiv.innerHTML = `<div id="scoreDisplay">Score: ${score}</div>
+                           <div id="livesDisplay" style="display:none;">Lives: ${lives}</div>`;
+  modalContent.appendChild(countersDiv);
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const livesDisplay = document.getElementById('livesDisplay');
+
+  // ===== DINOSAUR GAME =====
+  if(game==='dino'){
+    const dinoDiv=document.createElement('div'); dinoDiv.style.flex="1"; dinoDiv.style.position="relative"; dinoDiv.style.width="100%"; dinoDiv.style.height="100%";
+    modalContent.appendChild(dinoDiv);
+    const canvas=document.createElement('canvas'); canvas.width=dinoDiv.clientWidth; canvas.height=dinoDiv.clientHeight;
+    dinoDiv.appendChild(canvas); const ctx=canvas.getContext('2d');
+    let dino={x:50,y:canvas.height-50,w:30,h:40,vy:0,jumping:false}; const gravity=0.7; let obstacles=[]; let frame=0;
+    function spawnObstacle(){obstacles.push({x:canvas.width, y:canvas.height-40, w:20, h:40});}
+    function resetDino(){dino.y=canvas.height-50; dino.vy=0; dino.jumping=false; obstacles=[]; frame=0; score=0; scoreDisplay.innerText=score;}
+    function draw(){ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle="#555"; ctx.fillRect(0,canvas.height-10,canvas.width,10); ctx.fillStyle="green"; ctx.fillRect(dino.x,dino.y,dino.w,dino.h); ctx.fillStyle="red"; obstacles.forEach(o=>ctx.fillRect(o.x,o.y,o.w,o.h));}
+    function update(){frame++; dino.vy+=gravity; dino.y+=dino.vy; if(dino.y+dino.h>canvas.height-10){dino.y=canvas.height-10-dino.h; dino.vy=0; dino.jumping=false;}
+      obstacles.forEach(o=>{o.x-=5; if(dino.x<o.x+o.w && dino.x+dino.w>o.x && dino.y<o.y+o.h && dino.y+dino.h>o.y){ resetDino(); } if(o.x+o.w<0){score++; scoreDisplay.innerText=score; obstacles.shift();} });
+      if(frame%120===0) spawnObstacle(); }
+    function gameLoop(){update(); draw(); requestAnimationFrame(gameLoop);}
+    gameLoop(); window.addEventListener('keydown',e=>{if(e.code==="Space" && !dino.jumping){dino.vy=-12; dino.jumping=true;}});
+  }
+
+  // ===== REACTION TIME =====
+  else if(game==='reaction'){
+    const div=document.createElement('div'); div.style.flex="1"; div.style.width="100%"; div.style.display="flex"; div.style.flexDirection="column"; div.style.alignItems="center"; div.style.justifyContent="center"; modalContent.appendChild(div);
+    let btn=document.createElement('button'); btn.style.fontSize='30px'; btn.style.padding='50px 100px'; btn.innerText='Get Ready...'; div.appendChild(btn);
+    let waiting=false; let startTime;
+    function nextRound(){btn.innerText='Wait for it...'; btn.disabled=true; let delay = 1000 + Math.random()*2000; setTimeout(()=>{btn.innerText='CLICK NOW!'; btn.disabled=false; startTime = Date.now(); waiting=true;},delay);}
+    btn.onclick=function(){if(waiting){let reaction = Math.round(Date.now()-startTime); let points = Math.max(1000-reaction,0); score+=points; scoreDisplay.innerText="Score: "+score; waiting=false; nextRound();}}
+    nextRound();
+  }
+
+  // ===== MEMORY MATCH =====
+  else if(game==='memory'){
+    livesDisplay.style.display='block';
+    let level=1;
+    function startMemoryLevel(){ 
+      modalContent.innerHTML=""; 
+      const countersDiv = document.createElement('div'); 
+      countersDiv.style.textAlign="center"; countersDiv.style.margin="5px"; 
+      countersDiv.innerHTML=`<div id="scoreDisplay">Score: ${score}</div><div id="livesDisplay">Lives: ${lives}</div>`; 
+      modalContent.appendChild(countersDiv); 
+      const scoreDisplay=document.getElementById('scoreDisplay'); 
+      const livesDisplay=document.getElementById('livesDisplay');
+
+      const memDiv = document.createElement('div'); memDiv.style.flex="1"; memDiv.style.width="100%"; memDiv.style.display="flex"; memDiv.style.flexDirection="column"; memDiv.style.alignItems="center"; memDiv.style.justifyContent="center"; memDiv.innerHTML = `<h2>Memory Match - Level ${level}</h2><div id="memBoard" class="memory-grid"></div>`; 
+      modalContent.appendChild(memDiv);
+
+      const board=document.getElementById('memBoard'); 
+      board.style.gridTemplateColumns=`repeat(${level+1},80px)`; 
+      board.innerHTML=""; 
+      const totalCards=(level+1)*(level+1); 
+      const values=[]; 
+      for(let i=0;i<totalCards/2;i++){values.push(i); values.push(i);} 
+      values.sort(()=>Math.random()-0.5);
+      values.forEach(v=>{const card=document.createElement('button'); card.className="memory-card"; card.innerText="?"; card.dataset.val=v; board.appendChild(card);});
+      
+      let first=null,matches=0,lockBoard=false;
+      board.addEventListener('click', function handler(e){ 
+        if(lockBoard) return; 
+        if(e.target.tagName!=="BUTTON" || e.target.classList.contains('flipped')) return;
+        e.target.innerText=e.target.dataset.val; 
+        e.target.classList.add('flipped'); 
+        if(!first){first=e.target; return;}
+        if(first.dataset.val===e.target.dataset.val){matches+=2; score+=10; scoreDisplay.innerText="Score: "+score; first=null;} 
+        else {lives--; livesDisplay.innerText="Lives: "+lives; lockBoard=true; setTimeout(()=>{first.innerText="?"; first.classList.remove('flipped'); e.target.innerText="?"; e.target.classList.remove('flipped'); first=null; lockBoard=false;},500);}
+        if(matches===totalCards){level++; startMemoryLevel();} 
+        if(lives<=0){alert("Game Over!"); closeGame();}
+      });
+    }
+    startMemoryLevel();
+  }
+
+  // ===== CANDY CLICKER =====
+  else if(game==='clicker'){
+    livesDisplay.style.display='none';
+    const div=document.createElement('div'); div.style.flex="1"; div.style.display="flex"; div.style.flexDirection="column"; div.style.justifyContent="center"; div.style.alignItems="center"; modalContent.appendChild(div);
+
+    let pointsPerClick=1; let autoClickers=0;
+    let shopItems=[
+      {name:"Candy Multiplier", cost:10, effect:()=>{pointsPerClick++}},
+      {name:"Super Clicker", cost:50, effect:()=>{pointsPerClick+=5}},
+      {name:"Auto-Clicker", cost:100, effect:()=>{autoClickers++; startAutoClick();}},
+      {name:"Mega Multiplier", cost:500, effect:()=>{pointsPerClick*=2}},
+      {name:"Candy Rain!", cost:250, effect:()=>{score+=50; scoreDisplay.innerText=`Score: ${score}`;}}
+    ];
+
+    const scoreText=document.createElement('p'); scoreText.innerText=`Score: ${score}`; div.appendChild(scoreText);
+    const clickerInfo=document.createElement('p'); clickerInfo.innerText=`Points per click: ${pointsPerClick}`; div.appendChild(clickerInfo);
+
+    const clickBtn=document.createElement('button'); 
+    clickBtn.innerText="Click Me!"; 
+    clickBtn.style.fontSize='40px'; clickBtn.style.padding='50px 50px'; 
+    div.appendChild(clickBtn);
+
+    const candyCanvas=document.createElement('canvas'); 
+    candyCanvas.width=500; candyCanvas.height=500; 
+    candyCanvas.style.position="absolute"; candyCanvas.style.pointerEvents="none"; div.appendChild(candyCanvas);
+    const cctx=candyCanvas.getContext('2d');
+
+    let candies=[]; // floating candy particles
+
+    function animateCandies(){
+      cctx.clearRect(0,0,candyCanvas.width,candyCanvas.height);
+      for(let i=candies.length-1;i>=0;i--){
+        let c=candies[i]; c.y-=c.vy; c.alpha-=0.02; cctx.fillStyle=`rgba(255,192,203,${c.alpha})`; cctx.beginPath(); cctx.arc(c.x,c.y,c.radius,0,Math.PI*2); cctx.fill();
+        if(c.alpha<=0) candies.splice(i,1);
       }
-    });
+      requestAnimationFrame(animateCandies);
+    }
+    animateCandies();
 
-    // Make ALL Clever page buttons go to real Clever
-    document.querySelectorAll("#clever-page button").forEach(btn => {
-      btn.onclick = () => {
-        window.location.href = "https://clever.com/login";
+    function spawnCandy(x,y){
+      for(let i=0;i<5;i++){candies.push({x:x, y:y, radius:5+Math.random()*5, vy:1+Math.random()*2, alpha:1});}
+    }
+
+    function startAutoClick(){ 
+      if(clickerInterval) clearInterval(clickerInterval); 
+      clickerInterval=setInterval(()=>{score+=autoClickers; scoreText.innerText=`Score: ${score}`; scoreDisplay.innerText=`Score: ${score}`;},1000); 
+    }
+
+    clickBtn.onclick=function(e){
+      score+=pointsPerClick; 
+      scoreText.innerText=`Score: ${score}`; 
+      scoreDisplay.innerText=`Score: ${score}`;
+      clickerInfo.innerText=`Points per click: ${pointsPerClick}`;
+      spawnCandy(250,250); 
+    }
+
+    const shopDiv=document.createElement('div'); shopDiv.style.marginTop='20px'; div.appendChild(shopDiv);
+    const shopTitle=document.createElement('h3'); shopTitle.innerText="Shop"; shopDiv.appendChild(shopTitle);
+
+    shopItems.forEach(item=>{
+      const btn=document.createElement('button'); 
+      btn.className='shop-btn'; 
+      btn.innerText=`${item.name} - Cost: ${item.cost}`;
+      btn.onclick=function(){
+        if(score>=item.cost){
+          score-=item.cost; scoreText.innerText=`Score: ${score}`; scoreDisplay.innerText=`Score: ${score}`;
+          item.effect();
+          if(item.name==="Candy Multiplier" || item.name==="Super Clicker"){ item.cost=Math.floor(item.cost*2); }
+          else if(item.name==="Auto-Clicker" || item.name==="Mega Multiplier"){ item.cost=Math.floor(item.cost*3); }
+          else if(item.name==="Candy Rain!"){ item.cost=Math.floor(item.cost*4); }
+          btn.innerText=`${item.name} - Cost: ${item.cost}`;
+        } else alert("Not enough points!");
       };
+      shopDiv.appendChild(btn);
     });
-  </script>
+  }
+
+  // ===== PING PONG (BALL BOUNCE) =====
+  else if(game==='ballbounce'){
+    const div=document.createElement('div'); div.style.flex="1"; div.style.display="flex"; div.style.justifyContent="center"; div.style.alignItems="center";
+    const ballCanvas=document.createElement('canvas'); ballCanvas.width=800; ballCanvas.height=400; div.appendChild(ballCanvas); modalContent.appendChild(div);
+    const bctx=ballCanvas.getContext('2d'); 
+    let ballX=400, ballY=200, ballVX=4, ballVY=3;
+    let paddleY=180, paddleHeight=80, paddleWidth=10;
+    let gameOver=false;
+    function drawBall(){bctx.clearRect(0,0,ballCanvas.width,ballCanvas.height); bctx.fillStyle="red"; bctx.beginPath(); bctx.arc(ballX,ballY,15,0,Math.PI*2); bctx.fill();
+      bctx.fillStyle="white"; bctx.fillRect(10,paddleY,paddleWidth,paddleHeight);}
+    function updateBall(){if(gameOver) return; ballX+=ballVX; ballY+=ballVY;
+      if(ballY<15 || ballY>ballCanvas.height-15) ballVY*=-1;
+      if(ballX>ballCanvas.width-15) ballVX*=-1;
+      if(ballX<25 && ballY>paddleY && ballY<paddleY+paddleHeight) ballVX*=-1;
+      if(ballX<0) { gameOver=true; alert("Game Over!"); }
+    }
+    function loop(){updateBall(); drawBall(); requestAnimationFrame(loop);}
+    loop();
+    window.addEventListener('mousemove', e=>{const rect=ballCanvas.getBoundingClientRect(); paddleY=e.clientY-rect.top- paddleHeight/2;});
+  }
+
+  // ===== MOTO X3M =====
+  else if(game==='motox3m'){
+    livesDisplay.style.display='none';
+    const div=document.createElement('div'); div.style.flex="1"; div.style.width="100%"; div.style.display="flex"; div.style.justifyContent="center"; div.style.alignItems="center";
+    const iframe=document.createElement('iframe');
+    iframe.src='https://games.cdn.famobi.com/html5games/m/moto-x3m/v100/?fg_domain=play.famobi.com&fg_aid=A-O9JYH&fg_uid=442157bb-0a48-4e9b-9fa6-e1503f16e8e3&fg_pid=4e5f1429-8e41-4902-8f28-f0662edb1836&fg_beat=184&original_ref=';
+    iframe.width="800"; iframe.height="600"; iframe.style.border="none"; iframe.allowFullscreen=true;
+    div.appendChild(iframe); modalContent.appendChild(div);
+  }
+
+  // ===== BOUNCEMASTERS =====
+  else if(game==='bouncemasters'){
+    livesDisplay.style.display='none';
+    const div=document.createElement('div'); div.style.flex="1"; div.style.width="100%"; div.style.display="flex"; div.style.justifyContent="center"; div.style.alignItems="center";
+    const iframe=document.createElement('iframe');
+    iframe.src='https://games.cdn.famobi.com/html5games/b/bouncemasters/v030/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=c7c98861-36f5-432e-873a-6060954c1f1d&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=191&original_ref=https%3A%2F%2Fgames.famobi.com%2F';
+    iframe.width="800"; iframe.height="600"; iframe.style.border="none"; iframe.allowFullscreen=true;
+    div.appendChild(iframe); modalContent.appendChild(div);
+  }
+
+  // ===== GN MATH =====
+  else if(game==='gnmath'){
+    livesDisplay.style.display='none';
+    const div=document.createElement('div'); div.style.flex="1"; div.style.width="100%"; div.style.display="flex"; div.style.justifyContent="center"; div.style.alignItems="center";
+    const iframe=document.createElement('iframe');
+    iframe.src='https://gn-math.github.io/';
+    iframe.width="800"; iframe.height="600"; iframe.style.border="none"; iframe.allowFullscreen=true;
+    div.appendChild(iframe); modalContent.appendChild(div);
+  }
+
+}
+
+function closeGame(){modal.style.display='none'; clickerInterval && clearInterval(clickerInterval);}
+</script>
 
 </body>
 </html>
