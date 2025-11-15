@@ -34,9 +34,13 @@ button.shop-btn:hover { background:#555; }
     <button class="game-button" onclick="openGame('reaction')">Reaction Time</button>
     <button class="game-button" onclick="openGame('memory')">Memory Match</button>
     <button class="game-button" onclick="openGame('clicker')">Candy Clicker</button>
-    <button class="game-button" onclick="openGame('ballbounce')">Ball Bounce</button>
+    <button class="game-button" onclick="openGame('ballbounce')">Ping Pong</button>
     <h2>Dinosaur Game</h2>
     <button class="game-button" onclick="openGame('dino')">Play Dino</button>
+    <h2>Embedded Games</h2>
+    <button class="game-button" onclick="openGame('motox3m')">Moto X3M</button>
+    <button class="game-button" onclick="openGame('bouncemasters')">Bouncemasters</button>
+    <button class="game-button" onclick="openGame('gnmath')">GN Math</button>
   </div>
 </div>
 
@@ -111,15 +115,39 @@ function openGame(game){
   else if(game==='memory'){
     livesDisplay.style.display='block';
     let level=1;
-    function startMemoryLevel(){ modalContent.innerHTML=""; const countersDiv = document.createElement('div'); countersDiv.style.textAlign="center"; countersDiv.style.margin="5px"; lives = 3 + (level-1)*2; countersDiv.innerHTML=`<div id="scoreDisplay">Score: ${score}</div><div id="livesDisplay">Lives: ${lives}</div>`; modalContent.appendChild(countersDiv); const scoreDisplay=document.getElementById('scoreDisplay'); const livesDisplay=document.getElementById('livesDisplay');
-      const memDiv = document.createElement('div'); memDiv.style.flex="1"; memDiv.style.width="100%"; memDiv.style.display="flex"; memDiv.style.flexDirection="column"; memDiv.style.alignItems="center"; memDiv.style.justifyContent="center"; memDiv.innerHTML = `<h2>Memory Match - Level ${level}</h2><div id="memBoard" class="memory-grid"></div>`; modalContent.appendChild(memDiv);
-      const board=document.getElementById('memBoard'); board.style.gridTemplateColumns=`repeat(${level+1},80px)`; board.innerHTML=""; const totalCards=(level+1)*(level+1); const values=[]; for(let i=0;i<totalCards/2;i++){values.push(i); values.push(i);} values.sort(()=>Math.random()-0.5);
+    function startMemoryLevel(){ 
+      modalContent.innerHTML=""; 
+      const countersDiv = document.createElement('div'); 
+      countersDiv.style.textAlign="center"; countersDiv.style.margin="5px"; 
+      countersDiv.innerHTML=`<div id="scoreDisplay">Score: ${score}</div><div id="livesDisplay">Lives: ${lives}</div>`; 
+      modalContent.appendChild(countersDiv); 
+      const scoreDisplay=document.getElementById('scoreDisplay'); 
+      const livesDisplay=document.getElementById('livesDisplay');
+
+      const memDiv = document.createElement('div'); memDiv.style.flex="1"; memDiv.style.width="100%"; memDiv.style.display="flex"; memDiv.style.flexDirection="column"; memDiv.style.alignItems="center"; memDiv.style.justifyContent="center"; memDiv.innerHTML = `<h2>Memory Match - Level ${level}</h2><div id="memBoard" class="memory-grid"></div>`; 
+      modalContent.appendChild(memDiv);
+
+      const board=document.getElementById('memBoard'); 
+      board.style.gridTemplateColumns=`repeat(${level+1},80px)`; 
+      board.innerHTML=""; 
+      const totalCards=(level+1)*(level+1); 
+      const values=[]; 
+      for(let i=0;i<totalCards/2;i++){values.push(i); values.push(i);} 
+      values.sort(()=>Math.random()-0.5);
       values.forEach(v=>{const card=document.createElement('button'); card.className="memory-card"; card.innerText="?"; card.dataset.val=v; board.appendChild(card);});
+      
       let first=null,matches=0,lockBoard=false;
-      board.addEventListener('click', function handler(e){ if(lockBoard) return; if(e.target.tagName!=="BUTTON" || e.target.classList.contains('flipped')) return;
-        e.target.innerText=e.target.dataset.val; e.target.classList.add('flipped'); if(!first){first=e.target; return;}
-        if(first.dataset.val===e.target.dataset.val){matches+=2; score+=10; scoreDisplay.innerText="Score: "+score; first=null;} else {lives--; livesDisplay.innerText="Lives: "+lives; lockBoard=true; setTimeout(()=>{first.innerText="?"; first.classList.remove('flipped'); e.target.innerText="?"; e.target.classList.remove('flipped'); first=null; lockBoard=false;},500);}
-        if(matches===totalCards){level++; startMemoryLevel();} if(lives<=0){alert("Game Over!"); closeGame();} });
+      board.addEventListener('click', function handler(e){ 
+        if(lockBoard) return; 
+        if(e.target.tagName!=="BUTTON" || e.target.classList.contains('flipped')) return;
+        e.target.innerText=e.target.dataset.val; 
+        e.target.classList.add('flipped'); 
+        if(!first){first=e.target; return;}
+        if(first.dataset.val===e.target.dataset.val){matches+=2; score+=10; scoreDisplay.innerText="Score: "+score; first=null;} 
+        else {lives--; livesDisplay.innerText="Lives: "+lives; lockBoard=true; setTimeout(()=>{first.innerText="?"; first.classList.remove('flipped'); e.target.innerText="?"; e.target.classList.remove('flipped'); first=null; lockBoard=false;},500);}
+        if(matches===totalCards){level++; startMemoryLevel();} 
+        if(lives<=0){alert("Game Over!"); closeGame();}
+      });
     }
     startMemoryLevel();
   }
@@ -169,11 +197,7 @@ function openGame(game){
 
     function startAutoClick(){ 
       if(clickerInterval) clearInterval(clickerInterval); 
-      clickerInterval=setInterval(()=>{
-        score+=autoClickers; 
-        scoreText.innerText=`Score: ${score}`; 
-        scoreDisplay.innerText=`Score: ${score}`;
-      },1000); 
+      clickerInterval=setInterval(()=>{score+=autoClickers; scoreText.innerText=`Score: ${score}`; scoreDisplay.innerText=`Score: ${score}`;},1000); 
     }
 
     clickBtn.onclick=function(e){
@@ -181,8 +205,7 @@ function openGame(game){
       scoreText.innerText=`Score: ${score}`; 
       scoreDisplay.innerText=`Score: ${score}`;
       clickerInfo.innerText=`Points per click: ${pointsPerClick}`;
-      const rect=clickBtn.getBoundingClientRect();
-      spawnCandy(250,250); // center of canvas
+      spawnCandy(250,250); 
     }
 
     const shopDiv=document.createElement('div'); shopDiv.style.marginTop='20px'; div.appendChild(shopDiv);
@@ -196,16 +219,9 @@ function openGame(game){
         if(score>=item.cost){
           score-=item.cost; scoreText.innerText=`Score: ${score}`; scoreDisplay.innerText=`Score: ${score}`;
           item.effect();
-
-          // Increase cost aggressively
-          if(item.name==="Candy Multiplier" || item.name==="Super Clicker"){
-            item.cost=Math.floor(item.cost*2);
-          } else if(item.name==="Auto-Clicker" || item.name==="Mega Multiplier"){
-            item.cost=Math.floor(item.cost*3);
-          } else if(item.name==="Candy Rain!"){
-            item.cost=Math.floor(item.cost*4);
-          }
-
+          if(item.name==="Candy Multiplier" || item.name==="Super Clicker"){ item.cost=Math.floor(item.cost*2); }
+          else if(item.name==="Auto-Clicker" || item.name==="Mega Multiplier"){ item.cost=Math.floor(item.cost*3); }
+          else if(item.name==="Candy Rain!"){ item.cost=Math.floor(item.cost*4); }
           btn.innerText=`${item.name} - Cost: ${item.cost}`;
         } else alert("Not enough points!");
       };
@@ -213,14 +229,57 @@ function openGame(game){
     });
   }
 
-  // ===== BALL BOUNCE =====
+  // ===== PING PONG (BALL BOUNCE) =====
   else if(game==='ballbounce'){
     const div=document.createElement('div'); div.style.flex="1"; div.style.display="flex"; div.style.justifyContent="center"; div.style.alignItems="center";
     const ballCanvas=document.createElement('canvas'); ballCanvas.width=800; ballCanvas.height=400; div.appendChild(ballCanvas); modalContent.appendChild(div);
-    const bctx=ballCanvas.getContext('2d'); const balls=[]; for(let i=0;i<10;i++){balls.push({x:Math.random()*ballCanvas.width,y:Math.random()*ballCanvas.height,vx:2*(Math.random()-0.5),vy:2*(Math.random()-0.5),r:15});}
-    function animateBalls(){bctx.clearRect(0,0,ballCanvas.width,ballCanvas.height);for(let b of balls){b.x+=b.vx;b.y+=b.vy;if(b.x<b.r||b.x>ballCanvas.width-b.r)b.vx*=-1;if(b.y<b.r||b.y>ballCanvas.height-b.r)b.vy*=-1;bctx.beginPath();bctx.arc(b.x,b.y,b.r,0,Math.PI*2);bctx.fillStyle="red";bctx.fill();} requestAnimationFrame(animateBalls);}
-    animateBalls();
+    const bctx=ballCanvas.getContext('2d'); 
+    let ballX=400, ballY=200, ballVX=4, ballVY=3;
+    let paddleY=180, paddleHeight=80, paddleWidth=10;
+    let gameOver=false;
+    function drawBall(){bctx.clearRect(0,0,ballCanvas.width,ballCanvas.height); bctx.fillStyle="red"; bctx.beginPath(); bctx.arc(ballX,ballY,15,0,Math.PI*2); bctx.fill();
+      bctx.fillStyle="white"; bctx.fillRect(10,paddleY,paddleWidth,paddleHeight);}
+    function updateBall(){if(gameOver) return; ballX+=ballVX; ballY+=ballVY;
+      if(ballY<15 || ballY>ballCanvas.height-15) ballVY*=-1;
+      if(ballX>ballCanvas.width-15) ballVX*=-1;
+      if(ballX<25 && ballY>paddleY && ballY<paddleY+paddleHeight) ballVX*=-1;
+      if(ballX<0) { gameOver=true; alert("Game Over!"); }
+    }
+    function loop(){updateBall(); drawBall(); requestAnimationFrame(loop);}
+    loop();
+    window.addEventListener('mousemove', e=>{const rect=ballCanvas.getBoundingClientRect(); paddleY=e.clientY-rect.top- paddleHeight/2;});
   }
+
+  // ===== MOTO X3M =====
+  else if(game==='motox3m'){
+    livesDisplay.style.display='none';
+    const div=document.createElement('div'); div.style.flex="1"; div.style.width="100%"; div.style.display="flex"; div.style.justifyContent="center"; div.style.alignItems="center";
+    const iframe=document.createElement('iframe');
+    iframe.src='https://games.cdn.famobi.com/html5games/m/moto-x3m/v100/?fg_domain=play.famobi.com&fg_aid=A-O9JYH&fg_uid=442157bb-0a48-4e9b-9fa6-e1503f16e8e3&fg_pid=4e5f1429-8e41-4902-8f28-f0662edb1836&fg_beat=184&original_ref=';
+    iframe.width="800"; iframe.height="600"; iframe.style.border="none"; iframe.allowFullscreen=true;
+    div.appendChild(iframe); modalContent.appendChild(div);
+  }
+
+  // ===== BOUNCEMASTERS =====
+  else if(game==='bouncemasters'){
+    livesDisplay.style.display='none';
+    const div=document.createElement('div'); div.style.flex="1"; div.style.width="100%"; div.style.display="flex"; div.style.justifyContent="center"; div.style.alignItems="center";
+    const iframe=document.createElement('iframe');
+    iframe.src='https://games.cdn.famobi.com/html5games/b/bouncemasters/v030/?fg_domain=play.famobi.com&fg_aid=A1000-1&fg_uid=c7c98861-36f5-432e-873a-6060954c1f1d&fg_pid=4638e320-4444-4514-81c4-d80a8c662371&fg_beat=191&original_ref=https%3A%2F%2Fgames.famobi.com%2F';
+    iframe.width="800"; iframe.height="600"; iframe.style.border="none"; iframe.allowFullscreen=true;
+    div.appendChild(iframe); modalContent.appendChild(div);
+  }
+
+  // ===== GN MATH =====
+  else if(game==='gnmath'){
+    livesDisplay.style.display='none';
+    const div=document.createElement('div'); div.style.flex="1"; div.style.width="100%"; div.style.display="flex"; div.style.justifyContent="center"; div.style.alignItems="center";
+    const iframe=document.createElement('iframe');
+    iframe.src='https://gn-math.github.io/';
+    iframe.width="800"; iframe.height="600"; iframe.style.border="none"; iframe.allowFullscreen=true;
+    div.appendChild(iframe); modalContent.appendChild(div);
+  }
+
 }
 
 function closeGame(){modal.style.display='none'; clickerInterval && clearInterval(clickerInterval);}
