@@ -7,294 +7,65 @@
 <style>
 * { box-sizing: border-box; }
 body { 
-    margin: 0;
-    padding: 0;
-    background:
-      radial-gradient(circle at 10% 12%, rgba(255,255,255,0.03), transparent 12%),
-      linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #071028 100%),
-      repeating-linear-gradient(180deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 48px);
+    margin: 0; padding: 0;
+    background: radial-gradient(circle at 10% 12%, rgba(255,255,255,0.03), transparent 12%),
+                linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #071028 100%),
+                repeating-linear-gradient(180deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 48px);
     background-blend-mode: overlay, normal;
-    background-size: cover;
-    position: relative;
-    --accent-color: #00d4ff;
-    --dino-ground: #0f1630;
-    --dino-sky: linear-gradient(180deg, rgba(0,212,255,0.04), transparent);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    cursor: default;
-    /* Extra styling helpers for Dino modal/canvas (JS can leverage these classes) */
-    --game-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    /* Target canvas inside modal for nicer Dino visuals */
-    .modal-content canvas { 
-        background: linear-gradient(180deg, #071028 0%, #041022 60%, #001018 100%);
-        border-radius: 8px;
-        box-shadow: var(--game-shadow);
-        border: 2px solid rgba(0,212,255,0.08);
-        max-width: 100%;
-        height: auto;
-    }
-    /* Small HUD style the Dino game can update */
-    .dino-hud {
-        position: absolute;
-        top: 18px;
-        left: 22px;
-        z-index: 15;
-        background: rgba(2,6,20,0.45);
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid rgba(0,212,255,0.08);
-        color: #e6f7ff;
-        font-weight: 700;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-        pointer-events: none;
-    }
-
-    /* Tetris mini-game helpers */
-    .tetris-area { display:flex; gap:12px; align-items:flex-start; width:100%; justify-content:center; }
-    .tetris-grid { background: linear-gradient(180deg,#061226 0%,#041022 100%); border-radius:8px; padding:8px; border:2px solid rgba(0,212,255,0.06); box-shadow: var(--game-shadow); }
-    .tetris-grid .cell { width:22px; height:22px; display:inline-block; margin:1px; box-sizing:border-box; border-radius:3px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.02); }
-
-    /* Breakout / Arkanoid */
-    .breakout-canvas { background: linear-gradient(180deg,#071028,#001018); border-radius:8px; box-shadow: 0 12px 30px rgba(0,0,0,0.6); display:block; margin:0 auto; border:2px solid rgba(0,212,255,0.06); }
-    .breakout-paddle { width:110px; height:12px; background: linear-gradient(90deg,#00d4ff,#764ba2); border-radius:6px; box-shadow: 0 6px 18px rgba(0,0,0,0.5); margin:6px auto; }
-    .breakout-brick { width:48px; height:20px; margin:4px; display:inline-block; border-radius:4px; border:1px solid rgba(0,0,0,0.25); }
-
-    /* Top-down shooter / Asteroid */
-    .shooter-canvas { background: radial-gradient(circle at 50% 20%, rgba(0,212,255,0.04), transparent 20%), #000814; border-radius:8px; }
-    .ship-sprite { width:28px; height:28px; background:linear-gradient(135deg,#00d4ff,#7ef582); border-radius:4px; box-shadow:0 6px 16px rgba(0,0,0,0.6); }
-    .bullet { width:6px; height:12px; background:#ffd24d; border-radius:2px; box-shadow:0 2px 6px rgba(255,210,77,0.18); }
-    .asteroid { background: linear-gradient(180deg,#7a7a7a,#4b4b4b); border-radius:50%; box-shadow: inset -4px -6px 10px rgba(0,0,0,0.35); }
-
-    /* Whack-a-mole */
-    .mole-grid { display:grid; grid-template-columns: repeat(3, 120px); gap:14px; justify-content:center; align-items:center; padding:12px; }
-    .mole-hole { width:120px; height:80px; background: linear-gradient(180deg,#071028,#001018); border-radius:12px; position:relative; overflow:hidden; border:2px solid rgba(0,212,255,0.04); box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
-    .mole { position:absolute; bottom:-40px; left:50%; transform:translateX(-50%); width:64px; height:64px; background:linear-gradient(180deg,#ffcc99,#ffb07a); border-radius:50%; transition: bottom 220ms ease; display:flex; align-items:center; justify-content:center; font-weight:800; color:#3b2f2f; }
-    .mole.up { bottom:8px; }
-
-    /* Typing challenge */
-    .typing-area { max-width:720px; width:100%; background: linear-gradient(180deg,#061026,#03101a); padding:16px; border-radius:10px; border:1px solid rgba(0,212,255,0.04); box-shadow: var(--game-shadow); }
-    .typing-target { font-family: monospace; font-size:20px; line-height:1.6; color:#e6f7ff; background: rgba(255,255,255,0.02); padding:10px; border-radius:6px; }
-    .typing-input { width:100%; padding:10px; border-radius:6px; border:1px solid rgba(255,255,255,0.04); background: rgba(255,255,255,0.02); color:white; }
-
-    /* Platformer helpers */
-    .platformer-canvas { background: linear-gradient(180deg,#0b2238,#041022); border-radius:8px; box-shadow: var(--game-shadow); display:block; margin:0 auto; border:2px solid rgba(0,212,255,0.06); }
-    .platform { background: linear-gradient(90deg,#667eea,#764ba2); height:14px; border-radius:6px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
-    .player-sprite { width:32px; height:40px; background: linear-gradient(180deg,#00d4ff,#ff006e); border-radius:6px; box-shadow: 0 8px 18px rgba(0,0,0,0.6); }
-
-    /* Flappy / Endless flyer */
-    .flappy-canvas { background: linear-gradient(180deg,#031426,#07203a); border-radius:8px; border:2px solid rgba(0,212,255,0.04); box-shadow: var(--game-shadow); }
-    .flappy-bird { width:34px; height:24px; background: linear-gradient(90deg,#ffd24d,#ff6b6b); border-radius:6px; box-shadow:0 8px 18px rgba(0,0,0,0.6); }
-    .pipe { width:56px; background: linear-gradient(180deg,#2b6f4a,#1b4b34); border-radius:6px; box-shadow: inset -6px -8px 14px rgba(0,0,0,0.45); }
-
-    /* General mini-game HUD / button helpers */
-    .mini-hud { position:absolute; top:14px; right:18px; z-index:20; background:rgba(2,6,20,0.5); color:#e6f7ff; padding:8px 10px; border-radius:8px; border:1px solid rgba(0,212,255,0.06); font-weight:700; pointer-events:none; }
-    .mini-controls { display:flex; gap:8px; margin-top:12px; }
-    .mini-controls button { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-weight:700; box-shadow:0 6px 16px rgba(0,0,0,0.45); }
-
-    /* Responsive tweaks */
-    @media (max-width:720px) {
-        .tetris-grid .cell { width:18px; height:18px; }
-        .breakout-paddle { width:80px; }
-        .mole-grid { grid-template-columns: repeat(3, 1fr); gap:8px; }
-        .typing-area { padding:10px; }
-    }
+    font-family: 'Arial', sans-serif; color: white; min-height: 100vh;
+    overflow-x: hidden;
 }
-
-body { 
-    margin: 0;
-    padding: 0;
-    background:
-      radial-gradient(circle at 10% 12%, rgba(255,255,255,0.03), transparent 12%),
-      linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #071028 100%),
-      repeating-linear-gradient(180deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 48px);
-    background-blend-mode: overlay, normal;
-    background-size: cover;
-    position: relative;
-    --accent-color: #00d4ff;
-    --dino-ground: #0f1630;
-    --dino-sky: linear-gradient(180deg, rgba(0,212,255,0.04), transparent);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    cursor: default;
-    font-family: 'Arial', sans-serif; 
-    color:white; 
-    overflow-x:hidden; 
-    min-height:100vh;
-}
-h1 { 
-    text-align:center; margin:30px 0; font-size:3em; 
-    background: linear-gradient(45deg, #00d4ff, #ff006e);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: pulse 2s infinite;
-}
-@keyframes pulse { 0%, 100% { opacity:1; } 50% { opacity:0.8; } }
-h2 { text-align:center; margin:20px 0 15px; font-size:1.5em; color:#00d4ff; text-transform:uppercase; letter-spacing:2px; }
-.game-container { 
-    position:relative; width:90%; max-width:1200px; margin:20px auto; 
-    background:rgba(20, 20, 40, 0.8); padding:30px; border-radius:15px; 
-    overflow:hidden; border:2px solid #00d4ff; box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-}
-.games-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin: 20px 0;
-}
-.game-button { 
-    display:flex; align-items:center; justify-content:center;
-    width:100%; padding:20px; font-size:16px; font-weight:bold;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border:2px solid #00d4ff; border-radius:10px; color:white; cursor:pointer; 
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-.game-button:hover { 
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.6);
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-}
-.game-button:active { transform: translateY(0); }
-canvas { position:absolute; top:0; left:0; z-index:0; }
-.game-content { position:relative; z-index:1; }
-.modal { 
-    display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-    background:rgba(0,0,0,0.8); justify-content:center; align-items:center; 
-    z-index:1000; animation: fadeIn 0.3s;
-}
-@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-.modal-content { 
-    position:relative; width:92%; max-width:1100px; max-height:86%; height:86%;
-    background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
-    border:2px solid #00d4ff; border-radius:12px; display:flex; 
-    flex-direction:column; align-items:center; padding:22px; overflow:auto;
-    box-shadow: 0 0 40px rgba(0, 212, 255, 0.5);
-}
-.close-btn { 
-    position:absolute;
-    top:12px;
-    right:12px;
-    z-index:20;
-    padding:10px 14px; font-size:14px; font-weight:bold;
-    background: linear-gradient(135deg, #ff006e 0%, #ff4757 100%);
-    border:none; border-radius:8px; color:white; cursor:pointer; 
-    transition: all 0.2s;
-}
-.close-btn:hover { 
-    transform: scale(1.05);
-    box-shadow: 0 4px 15px rgba(255, 0, 110, 0.6);
-}
-.memory-grid { display:grid; gap:10px; justify-content:center; }
-.memory-card { 
-    width:80px; height:80px; background: transparent; border: none; cursor:pointer;
-    perspective: 800px; padding: 0;
-}
-.card-inner {
-    position:relative; width:100%; height:100%;
-    transition: transform 0.45s; transform-style: preserve-3d;
-    border-radius:8px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-.memory-card .card-front, .memory-card .card-back {
-    position:absolute; top:0; left:0; right:0; bottom:0;
-    display:flex; align-items:center; justify-content:center;
-    backface-visibility: hidden; border-radius:8px; font-weight:bold; font-size:28px;
-    border:2px solid #00d4ff;
-}
-.card-front {
-    background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
-    color:#000;
-    transform: rotateY(180deg);
-}
-.card-back {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color:white;
-}
-.memory-card.flipped .card-inner { transform: rotateY(180deg); }
-.memory-card.matched .card-inner { box-shadow: 0 8px 30px rgba(0, 212, 255, 0.7); transform: scale(1.05) rotateY(180deg); }
-
-.shop-btn { 
-    padding:12px 20px; margin:8px; border-radius:8px; 
-    background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
-    color:#000; border:none; cursor:pointer; transition: all 0.3s; 
-    font-weight:bold;
-}
-.shop-btn:hover { 
-    transform: scale(1.1);
-    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.6);
-}
-.score-display { 
-    text-align:center; margin:15px 0; font-size:16px; font-weight:bold;
-    padding: 12px;
-    background: rgba(0, 212, 255, 0.06);
-    border-radius: 10px;
-    border-left: 4px solid #00d4ff;
-    display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap;
-}
-.small-panel { font-size:14px; padding:6px 10px; background: rgba(255,255,255,0.04); border-radius:6px; }
-.restart-btn { padding:6px 10px; background:#ff006e; border:none; border-radius:6px; color:white; cursor:pointer; }
-
-/* New styles for responsive embedded games */
-.iframe-wrap { position:relative; flex:1; width:100%; display:flex; align-items:stretch; justify-content:center; }
-.iframe-wrap iframe { border:0; width:100%; height:100%; min-height:480px; flex:1; border-radius:8px; overflow:hidden; }
-.iframe-loader {
-    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-    background:rgba(10,14,39,0.9); color:#fff; padding:10px 14px; border-radius:8px; z-index:12;
-    display:flex; align-items:center; gap:8px; font-weight:bold; box-shadow:0 6px 20px rgba(0,0,0,0.6);
-}
-.iframe-spinner { width:18px; height:18px; border:3px solid rgba(255,255,255,0.15); border-top-color:#00d4ff; border-radius:50%; animation:spin 1s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
-.iframe-overlay {
-    position:absolute; top:14px; right:14px; background:rgba(0,0,0,0.55); color:#fff; padding:8px 10px; border-radius:6px; z-index:13;
-    cursor:pointer; font-weight:bold; font-size:13px;
-}
-
-/* small helpers for new mini-games */
-.color-pad { width:140px; height:140px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; color:#000; font-weight:bold; font-size:18px; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.25); }
-.color-row { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:12px; }
-.snake-canvas { background:#071028; border-radius:8px; box-shadow: 0 8px 30px rgba(0,0,0,0.6); }
-.quiz-choices { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; width:100%; max-width:640px; margin-top:12px; }
-.choice-btn { padding:12px; border-radius:8px; border:none; cursor:pointer; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-weight:bold; white-space:pre-line; }
+#dotsCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+h1 { font-size: 5rem; margin: 40px 0; text-align: center; background: linear-gradient(45deg, #00d4ff, #ff006e); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 30px rgba(0, 212, 255, 0.3); letter-spacing: 2px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+h2 { font-size: 2.5rem; margin: 40px 0 20px; text-align: center; color: #00d4ff; text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+.game-container { width: 90%; max-width: 1200px; margin: 20px auto; padding: 40px; background: rgba(20,20,40,0.85); border-radius: 15px; border: 2px solid #00d4ff; box-shadow: 0 0 50px rgba(0, 212, 255, 0.3); }
+.games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin: 30px 0; }
+.game-button { padding: 30px 15px; font-size: 1.2rem; font-weight: bold; background: linear-gradient(135deg, #667eea, #764ba2); border: 2px solid #00d4ff; border-radius: 12px; color: white; cursor: pointer; text-transform: uppercase; transition: all 0.3s ease; box-shadow: 0 5px 25px rgba(102, 126, 234, 0.4); }
+.game-button:hover { transform: translateY(-5px); box-shadow: 0 10px 40px rgba(0, 212, 255, 0.6); }
+.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(10px); }
+.modal.show { display: flex; }
+.modal-content { width: 90%; max-width: 800px; height: 85vh; background: #0f3460; border: 3px solid #00d4ff; border-radius: 20px; padding: 30px; position: relative; display: flex; flex-direction: column; align-items: center; }
+.close-btn { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; background: #ff006e; border: none; border-radius: 50%; color: white; cursor: pointer; font-weight: bold; }
+.score-display { font-size: 2rem; color: #00d4ff; margin-bottom: 15px; text-shadow: 0 0 10px #00d4ff; }
+#gameArea { width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+canvas.game-canvas { background: #000; border: 2px solid #00d4ff; max-width: 100%; max-height: 60vh; image-rendering: pixelated; }
 </style>
 </head>
 <body>
+
+<canvas id="dotsCanvas"></canvas>
 <h1>🎮 FUN ARCADE 🎮</h1>
 
 <div class="game-container">
-    <canvas id="dotsCanvas"></canvas>
-    <div class="game-content">
-        <h2>⚡ Mini-Games</h2>
-        <div class="games-grid">
-            <button class="game-button" onclick="GameManager.open('reaction')">⏱️ Reaction Time</button>
-            <button class="game-button" onclick="GameManager.open('memory')">🧠 Memory Match</button>
-            <button class="game-button" onclick="GameManager.open('clicker')">🍬 Candy Clicker</button>
-            <button class="game-button" onclick="GameManager.open('ballbounce')">🏓 Ping Pong</button>
-            <button class="game-button" onclick="GameManager.open('snake')">🐍 Snake</button>
-            <button class="game-button" onclick="GameManager.open('simon')">🔴🟢 Simon</button>
-            <button class="game-button" onclick="GameManager.open('mathquiz')">➗ Math Quiz</button>
-        </div>
-        
-        <h2>🦕 Dinosaur Game</h2>
-        <div class="games-grid">
-            <button class="game-button" onclick="GameManager.open('dino')">Play Dino</button>
-        </div>
-        
-        <h2>🎯 Embedded Games</h2>
-        <div class="games-grid">
-            <button class="game-button" onclick="GameManager.open('motox3m')">🏍️ Moto X3M</button>
-            <button class="game-button" onclick="GameManager.open('bouncemasters')">⛹️ Bouncemasters</button>
-            <button class="game-button" onclick="GameManager.open('gnmath')">📐 GN Math</button>
-        </div>
+    <h2>⚡ Mini-Games</h2>
+    <div class="games-grid">
+        <button class="game-button" onclick="GameManager.open('reaction')">Reaction Time</button>
+        <button class="game-button" onclick="GameManager.open('memory')">Memory Match</button>
+        <button class="game-button" onclick="GameManager.open('clicker')">Candy Clicker</button>
+        <button class="game-button" onclick="GameManager.open('ballbounce')">Ping Pong</button>
+        <button class="game-button" onclick="GameManager.open('snake')">Snake</button>
+        <button class="game-button" onclick="GameManager.open('simon')">Simon</button>
+        <button class="game-button" onclick="GameManager.open('mathquiz')">Math Quiz</button>
+        <button class="game-button" onclick="GameManager.open('breakout')">Breakout</button>
+        <button class="game-button" onclick="GameManager.open('flappy')">Flappy Bird</button>
+        <button class="game-button" onclick="GameManager.open('whack')">Whack-a-Mole</button>
+        <button class="game-button" onclick="GameManager.open('dino')">Dino Run</button>
+    </div>
+    <h2>🎯 Embedded Games</h2>
+    <div class="games-grid">
+        <button class="game-button" onclick="GameManager.open('motox3m')">Moto X3M</button>
+        <button class="game-button" onclick="GameManager.open('bouncemasters')">Bounce Masters</button>
+        <button class="game-button" onclick="GameManager.open('gnmath')">GN Math</button>
     </div>
 </div>
 
-<!-- Fixed modal structure: modal contains modal-content and close button -->
-<div id="gameModal" class="modal" aria-hidden="true">
-    <div class="modal-content" id="modalContent"></div>
-    <button class="close-btn" onclick="GameManager.close()" aria-label="Close Game">✕</button>
+<div id="gameModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="GameManager.close()">✕</button>
+        <div id="scoreDisplay" class="score-display">Score: 0</div>
+        <div id="gameArea"></div>
+    </div>
 </div>
 
 <script>
@@ -302,1030 +73,279 @@ class DotBackground {
     constructor() {
         this.canvas = document.getElementById('dotsCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.mouse = {x: -100, y: -100, radius: 60};
         this.dots = [];
-        this.animationId = null;
         this.init();
     }
-
     init() {
-        this.resizeCanvas();
-        window.addEventListener('resize', () => this.resizeCanvas());
-        this.canvas.addEventListener('mousemove', (e) => this.updateMouse(e));
-        this.canvas.addEventListener('mouseleave', () => this.resetMouse());
-        this.createDots();
-        this.animate();
-    }
-
-    resizeCanvas() {
-        const container = document.querySelector('.game-container');
-        this.canvas.width = container.clientWidth;
-        this.canvas.height = container.clientHeight;
-    }
-
-    createDots() {
-        this.dots = [];
-        for(let i = 0; i < 80; i++) {
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        for (let i = 0; i < 80; i++) {
             this.dots.push({
-                x: Math.random() * this.canvas.width,
-                y: Math.random() * this.canvas.height,
-                vx: (Math.random() - 0.5) * 1.5,
-                vy: (Math.random() - 0.5) * 1.5,
-                radius: 3 + Math.random() * 4,
-                opacity: 0.3 + Math.random() * 0.5
+                x: Math.random() * innerWidth,
+                y: Math.random() * innerHeight,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                r: Math.random() * 2 + 1
             });
         }
+        this.animate();
     }
-
-    updateMouse(e) {
-        const rect = this.canvas.getBoundingClientRect();
-        this.mouse.x = e.clientX - rect.left;
-        this.mouse.y = e.clientY - rect.top;
-    }
-
-    resetMouse() {
-        this.mouse.x = -100;
-        this.mouse.y = -100;
-    }
-
+    resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; }
     animate() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
+        this.ctx.fillStyle = '#00d4ff';
         this.dots.forEach(d => {
-            d.x += d.vx;
-            d.y += d.vy;
-            
-            if(d.x < d.radius || d.x > this.canvas.width - d.radius) d.vx *= -1;
-            if(d.y < d.radius || d.y > this.canvas.height - d.radius) d.vy *= -1;
-            
-            let dx = d.x - this.mouse.x;
-            let dy = d.y - this.mouse.y;
-            let dist = Math.sqrt(dx * dx + dy * dy);
-            
-            if(dist < this.mouse.radius + d.radius) {
-                let angle = Math.atan2(dy, dx);
-                let push = (this.mouse.radius + d.radius - dist) / 2;
-                d.x += Math.cos(angle) * push;
-                d.y += Math.sin(angle) * push;
-            }
-            
-            this.ctx.beginPath();
-            this.ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
-            this.ctx.fillStyle = `rgba(0, 212, 255, ${d.opacity})`;
-            this.ctx.fill();
+            d.x += d.vx; d.y += d.vy;
+            if (d.x < 0 || d.x > this.canvas.width) d.vx *= -1;
+            if (d.y < 0 || d.y > this.canvas.height) d.vy *= -1;
+            this.ctx.beginPath(); this.ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); this.ctx.fill();
         });
-        
-        this.animationId = requestAnimationFrame(() => this.animate());
-    }
-
-    stop() {
-        if(this.animationId) cancelAnimationFrame(this.animationId);
+        requestAnimationFrame(() => this.animate());
     }
 }
 
 const GameManager = {
+    gameArea: document.getElementById('gameArea'),
+    scoreDisplay: document.getElementById('scoreDisplay'),
     modal: document.getElementById('gameModal'),
-    modalContent: document.getElementById('modalContent'),
     score: 0,
-    lives: 3,
-    clickerInterval: null,
-    gameLoopId: null,
-    keyDownListener: null,
-    memoryTimer: null,
-    pointsPerClick: 1,
-    snakeInterval: null,
-    simonTimeouts: [],
-    simonShowing: false,
-    simonSequence: [],
-    simonPosition: 0,
-    mathTimer: null,
+    activeLoop: null,
+    trollActive: false,
+    trollCounter: 0,
 
     open(game) {
-        this.score = 0;
-        this.lives = 3;
-        this.modal.style.display = 'flex';
-        this.modal.setAttribute('aria-hidden', 'false');
-        this.modalContent.innerHTML = '';
-        if(this.clickerInterval) clearInterval(this.clickerInterval);
-        if(this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
-        if(this.memoryTimer) clearInterval(this.memoryTimer);
-        if(this.snakeInterval) clearInterval(this.snakeInterval);
-        this.simonTimeouts.forEach(t => clearTimeout(t)); this.simonTimeouts = [];
-        if(this.mathTimer) clearInterval(this.mathTimer);
-
-        this.createScoreDisplay();
+        this.score = 0; this.updateScore(); this.gameArea.innerHTML = ''; this.modal.classList.add('show');
+        if(this.activeLoop) { cancelAnimationFrame(this.activeLoop); clearTimeout(this.activeLoop); }
+        
+        window.onkeydown = (e) => {
+            if (e.key.toLowerCase() === 'l') {
+                this.trollCounter++;
+                if (this.trollCounter >= 3) {
+                    this.trollActive = !this.trollActive;
+                    this.trollCounter = 0;
+                }
+            }
+        };
         if(this[game]) this[game]();
     },
+    close() { this.modal.classList.remove('show'); this.gameArea.innerHTML = ''; if(this.activeLoop) cancelAnimationFrame(this.activeLoop); window.onkeydown = null; },
+    updateScore(v) { if(v!==undefined) this.score=v; this.scoreDisplay.innerText = `Score: ${this.score}`; },
 
-    close() {
-        this.modal.style.display = 'none';
-        this.modal.setAttribute('aria-hidden', 'true');
-        if(this.clickerInterval) clearInterval(this.clickerInterval);
-        if(this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
-        if(this.keyDownListener) window.removeEventListener('keydown', this.keyDownListener);
-        if(this.canvasMouseHandler && this.activeCanvas) {
-            try { this.activeCanvas.removeEventListener('mousemove', this.canvasMouseHandler); } catch (e) {}
-            this.activeCanvas = null;
-            this.canvasMouseHandler = null;
-        }
-        if(this.memoryTimer) { clearInterval(this.memoryTimer); this.memoryTimer = null; }
-        if(this.snakeInterval) { clearInterval(this.snakeInterval); this.snakeInterval = null; }
-        this.simonTimeouts.forEach(t => clearTimeout(t)); this.simonTimeouts = [];
-        this.simonShowing = false; this.simonSequence = []; this.simonPosition = 0;
-        if(this.mathTimer) { clearInterval(this.mathTimer); this.mathTimer = null; }
-    },
-
-    createScoreDisplay() {
-        const existing = document.querySelector('.score-display');
-        if(existing) existing.remove();
-
-        const div = document.createElement('div');
-        div.className = 'score-display';
-        div.innerHTML = `
-            <div id="scoreDisplay" class="small-panel">⭐ Score: ${this.score}</div>
-            <div id="livesDisplay" class="small-panel" style="display:none;">❤️ Lives: ${this.lives}</div>
-            <div id="movesDisplay" class="small-panel">🔁 Moves: 0</div>
-            <div id="timerDisplay" class="small-panel">⏱️ Time: 0s</div>
-            <button id="restartLevelBtn" class="restart-btn small-panel" style="display:none;">Restart Level</button>
-        `;
-        this.modalContent.appendChild(div);
-    },
-
-    dino() {
-        const div = document.createElement('div');
-        div.style.flex = '1';
-        div.style.width = '100%';
-        div.style.display = 'flex';
-        div.style.justifyContent = 'center';
-        div.style.alignItems = 'center';
-        div.style.padding = '20px';
-        this.modalContent.innerHTML = ''; // Clear previous content
-        this.modalContent.appendChild(div);
-
-        const canvas = document.createElement('canvas');
-        // Use responsive sizing that fits the modal
-        const maxWidth = Math.min(800, this.modalContent.clientWidth - 100);
-        const maxHeight = Math.min(400, this.modalContent.clientHeight - 200);
-        const scale = Math.min(maxWidth / 800, maxHeight / 400);
-        
-        canvas.width = 800 * scale;
-        canvas.height = 400 * scale;
-        canvas.style.maxWidth = '100%';
-        canvas.style.maxHeight = '100%';
-        div.appendChild(canvas);
-        const ctx = canvas.getContext('2d');
-
-        const dino = {x: 50, y: canvas.height - 50, w: 40, h: 50, vy: 0, jumping: false};
-        const gravity = 0.7;
-        let obstacles = [];
-        let frame = 0;
-        let gameActive = true;
-
-        const update = () => {
-            if(!gameActive) return;
-            frame++;
-            dino.vy += gravity;
-            dino.y += dino.vy;
-            
-            if(dino.y + dino.h > canvas.height - 10) {
-                dino.y = canvas.height - 10 - dino.h;
-                dino.vy = 0;
-                dino.jumping = false;
-            }
-
-            obstacles.forEach((o, i) => {
-                o.x -= 5;
-                if(dino.x < o.x + o.w && dino.x + dino.w > o.x && 
-                     dino.y < o.y + o.h && dino.y + dino.h > o.y) {
-                    gameActive = false;
-                    setTimeout(() => alert(`Game Over! Final Score: ${this.score}`), 50);
-                    this.close();
-                }
-                if(o.x + o.w < 0) {
-                    this.score++;
-                    const sd = document.getElementById('scoreDisplay');
-                    if(sd) sd.innerText = `⭐ Score: ${this.score}`;
-                    obstacles.splice(i, 1);
-                }
-            });
-
-            if(frame % 120 === 0) obstacles.push({x: canvas.width, y: canvas.height - 40, w: 30, h: 40});
-        };
-
-        const draw = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#555';
-            ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
-            ctx.fillStyle = '#00d4ff';
-            ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
-            ctx.fillStyle = '#ff006e';
-            obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
-        };
-
-        const gameLoop = () => {
-            update();
-            draw();
-            this.gameLoopId = requestAnimationFrame(gameLoop);
-        };
-
-        this.keyDownListener = (e) => {
-            if(e.code === 'Space' && !dino.jumping && gameActive) {
-                dino.vy = -12;
-                dino.jumping = true;
-                e.preventDefault();
-            }
-        };
-
-        window.addEventListener('keydown', this.keyDownListener);
-        gameLoop();
-    },
-
-    reaction() {
-        const div = document.createElement('div');
-        div.style.flex = '1';
-        div.style.display = 'flex';
-        div.style.flexDirection = 'column';
-        div.style.justifyContent = 'center';
-        div.style.alignItems = 'center';
-        div.style.gap = '20px';
-        div.style.padding = '20px';
-        this.modalContent.innerHTML = ''; // Clear previous content
-        this.modalContent.appendChild(div);
-
-        const infoText = document.createElement('p');
-        infoText.style.fontSize = '18px';
-        infoText.style.textAlign = 'center';
-        div.appendChild(infoText);
-
-        const btn = document.createElement('button');
-        btn.style.fontSize = 'clamp(24px, 4vw, 30px)';
-        btn.style.padding = 'clamp(30px, 8vh, 50px) clamp(60px, 15vw, 100px)';
-        btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        btn.style.color = 'white';
-        btn.style.border = '2px solid #00d4ff';
-        btn.style.borderRadius = '10px';
-        btn.style.cursor = 'pointer';
-        btn.style.transition = 'all 0.3s';
-        btn.innerText = 'Get Ready...';
-        btn.style.fontWeight = 'bold';
-        btn.style.maxWidth = '90%';
-        div.appendChild(btn);
-
-        let waiting = false;
-        let startTime;
-        let rounds = 0;
-
-        const nextRound = () => {
-            rounds++;
-            if(rounds > 3) {
-                alert(`Game Complete! Final Score: ${this.score}`);
-                this.close();
-                return;
-            }
-            btn.innerText = 'Wait for it...';
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            infoText.innerText = `Round ${rounds}/3`;
-            setTimeout(() => {
-                btn.innerText = 'CLICK NOW!';
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.style.background = 'linear-gradient(135deg, #ff006e 0%, #ff4757 100%)';
-                startTime = Date.now();
-                waiting = true;
-            }, 1000 + Math.random() * 2000);
-        };
-
-        btn.onmouseenter = () => { if(!btn.disabled) btn.style.transform = 'scale(1.05)'; };
-        btn.onmouseleave = () => { btn.style.transform = 'scale(1)'; };
-
-        btn.onclick = () => {
-            if(waiting) {
-                const reaction = Math.round(Date.now() - startTime);
-                const points = Math.max(1000 - reaction, 0);
-                this.score += points;
-                const sd = document.getElementById('scoreDisplay');
-                if(sd) sd.innerText = `⭐ Score: ${this.score}`;
-                waiting = false;
-                btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                infoText.innerText = `Reaction: ${reaction}ms | +${points} points`;
-                setTimeout(nextRound, 1500);
-            }
-        };
-
-        nextRound();
-    },
-
-    memory() {
-        this.lives = Math.max(this.lives, 1);
-        const state = {
-            level: 1,
-            firstCard: null,
-            secondCard: null,
-            lock: false,
-            matches: 0,
-            moves: 0,
-            startTime: 0,
-            timerId: null,
-            cardsTotal: 0
-        };
-
-        const setupLevel = (level) => {
-            state.level = level;
-            this.modalContent.innerHTML = '';
-            this.createScoreDisplay();
-            const livesEl = document.getElementById('livesDisplay');
-            if(livesEl) { livesEl.style.display = 'inline-block'; livesEl.innerText = `❤️ Lives: ${this.lives}`; }
-
-            const container = document.createElement('div');
-            container.style.flex = '1';
-            container.style.width = '100%';
-            container.style.display = 'flex';
-            container.style.flexDirection = 'column';
-            container.style.alignItems = 'center';
-            container.style.justifyContent = 'flex-start';
-            container.style.gap = '12px';
-            container.style.padding = '20px';
-            container.innerHTML = `<h2>🧠 Memory Match - Level ${state.level}</h2><div id="memBoard" class="memory-grid"></div>`;
-            this.modalContent.appendChild(container);
-
-            const board = document.getElementById('memBoard');
-            const gridSize = Math.min(state.level + 1, 6);
-            let totalCards = gridSize * gridSize;
-            if(totalCards % 2 === 1) totalCards++;
-            state.cardsTotal = totalCards;
-
-            // Calculate responsive card size based on available space
-            const maxCardSize = Math.min(80, Math.floor((this.modalContent.clientWidth - 100) / gridSize));
-            board.style.gridTemplateColumns = `repeat(${Math.min(gridSize, Math.max(2, Math.ceil(totalCards / Math.max(1, gridSize))) )}, ${maxCardSize}px)`;
-
-            const pairs = totalCards / 2;
-            let values = [];
-            for(let i = 0; i < pairs; i++) values.push(i, i);
-            for(let i = values.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [values[i], values[j]] = [values[j], values[i]];
-            }
-
-            board.innerHTML = '';
-            values.forEach((v, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'memory-card';
-                btn.setAttribute('data-val', v);
-                btn.setAttribute('aria-label', 'Memory card');
-                // Calculate responsive card size
-                const maxCardSize = Math.min(80, Math.floor((this.modalContent.clientWidth - 100) / gridSize));
-                btn.style.width = `${maxCardSize}px`;
-                btn.style.height = `${maxCardSize}px`;
-                btn.innerHTML = `
-                    <div class="card-inner">
-                        <div class="card-front">${v}</div>
-                        <div class="card-back">?</div>
-                    </div>
-                `;
-                board.appendChild(btn);
-            });
-
-            state.firstCard = null; state.secondCard = null; state.lock = false; state.matches = 0; state.moves = 0;
-            document.getElementById('movesDisplay').innerText = `🔁 Moves: ${state.moves}`;
-            document.getElementById('scoreDisplay').innerText = `⭐ Score: ${this.score}`;
-            document.getElementById('timerDisplay').innerText = `⏱️ Time: 0s`;
-            const restartBtn = document.getElementById('restartLevelBtn');
-            restartBtn.style.display = 'inline-block';
-            restartBtn.onclick = () => {
-                clearInterval(this.memoryTimer);
-                setupLevel(state.level);
-            };
-
-            const allCards = Array.from(board.querySelectorAll('.memory-card'));
-            allCards.forEach(c => c.classList.add('flipped'));
-            setTimeout(() => {
-                allCards.forEach(c => c.classList.remove('flipped'));
-                state.startTime = Date.now();
-                if(this.memoryTimer) clearInterval(this.memoryTimer);
-                this.memoryTimer = setInterval(() => {
-                    const seconds = Math.floor((Date.now() - state.startTime) / 1000);
-                    const tEl = document.getElementById('timerDisplay');
-                    if(tEl) tEl.innerText = `⏱️ Time: ${seconds}s`;
-                }, 500);
-            }, 1200 + Math.min(800, state.level * 200));
-
-            const onCardClick = (e) => {
-                const t = e.target.closest('.memory-card');
-                if(!t || state.lock || t.classList.contains('flipped') || t.classList.contains('matched')) return;
-
-                t.classList.add('flipped');
-
-                if(!state.firstCard) {
-                    state.firstCard = t;
-                    return;
-                }
-                state.secondCard = t;
-                state.lock = true;
-                state.moves++;
-                const moveEl = document.getElementById('movesDisplay');
-                if(moveEl) moveEl.innerText = `🔁 Moves: ${state.moves}`;
-
-                const valA = state.firstCard.dataset.val;
-                const valB = state.secondCard.dataset.val;
-
-                if(valA === valB) {
-                    state.firstCard.classList.add('matched');
-                    state.secondCard.classList.add('matched');
-                    state.matches += 2;
-                    this.score += 10 + Math.max(0, 20 - state.level*2);
-                    const sEl = document.getElementById('scoreDisplay');
-                    if(sEl) sEl.innerText = `⭐ Score: ${this.score}`;
-                    state.firstCard = null;
-                    state.secondCard = null;
-                    state.lock = false;
-                    if(state.matches === state.cardsTotal) {
-                        clearInterval(this.memoryTimer);
-                        this.memoryTimer = null;
-                        setTimeout(() => {
-                            alert(`Level ${state.level} complete! +${state.level * 20} bonus`);
-                            this.score += state.level * 20;
-                            const sEl2 = document.getElementById('scoreDisplay');
-                            if(sEl2) sEl2.innerText = `⭐ Score: ${this.score}`;
-                            if(state.level < 6) setupLevel(state.level + 1);
-                            else { alert(`You beat the Memory game! Final score: ${this.score}`); this.close(); }
-                        }, 600);
-                    }
-                } else {
-                    this.lives--;
-                    const lEl = document.getElementById('livesDisplay');
-                    if(lEl) lEl.innerText = `❤️ Lives: ${this.lives}`;
-
-                    setTimeout(() => {
-                        state.firstCard.classList.remove('flipped');
-                        state.secondCard.classList.remove('flipped');
-                        state.firstCard = null;
-                        state.secondCard = null;
-                        state.lock = false;
-                        if(this.lives <= 0) {
-                            clearInterval(this.memoryTimer);
-                            this.memoryTimer = null;
-                            alert('Game Over! Final Score: ' + this.score);
-                            this.close();
-                        }
-                    }, 700);
-                }
-            };
-
-            board.removeEventListener('click', board._memHandler);
-            board._memHandler = onCardClick;
-            board.addEventListener('click', onCardClick);
-        };
-
-        setupLevel(1);
-    },
-    clicker() {
-        const div = document.createElement('div');
-        div.style.flex = '1';
-        div.style.display = 'flex';
-        div.style.flexDirection = 'column';
-        div.style.alignItems = 'center';
-        div.style.justifyContent = 'center';
-        this.modalContent.appendChild(div);
-
-        this.pointsPerClick = 1;
-        let autoClickers = 0;
-
-        const scoreText = document.createElement('p');
-        scoreText.style.fontSize = '24px';
-        scoreText.style.fontWeight = 'bold';
-        scoreText.innerText = `Score: ${this.score}`;
-        div.appendChild(scoreText);
-
-        const clickBtn = document.createElement('button');
-        clickBtn.innerText = '🍬 Click Me!';
-        clickBtn.style.fontSize = 'clamp(32px, 6vw, 40px)';
-        clickBtn.style.padding = 'clamp(40px, 10vh, 50px) clamp(40px, 10vw, 50px)';
-        clickBtn.style.background = 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)';
-        clickBtn.style.color = '#000';
-        clickBtn.style.border = 'none';
-        clickBtn.style.borderRadius = '10px';
-        clickBtn.style.cursor = 'pointer';
-        clickBtn.style.fontWeight = 'bold';
-        clickBtn.style.transition = 'all 0.2s';
-        clickBtn.style.maxWidth = '90%';
-        div.appendChild(clickBtn);
-
-        const shopItems = [
-            {name: 'Candy Multiplier', cost: 10, effect: () => this.pointsPerClick++},
-            {name: 'Super Clicker', cost: 50, effect: () => this.pointsPerClick += 5},
-            {name: 'Auto-Clicker', cost: 100, effect: () => {autoClickers++; this.startAutoClick();}},
-            {name: 'Mega Multiplier', cost: 500, effect: () => this.pointsPerClick *= 2},
-            {name: 'Candy Rain!', cost: 250, effect: () => this.score += 50}
-        ];
-
-        clickBtn.onmousedown = () => { clickBtn.style.transform = 'scale(0.95)'; };
-        clickBtn.onmouseup = () => { clickBtn.style.transform = 'scale(1)'; };
-        clickBtn.onclick = () => {
-            this.score += this.pointsPerClick;
-            scoreText.innerText = `Score: ${this.score}`;
-            const sd = document.getElementById('scoreDisplay');
-            if(sd) sd.innerText = `⭐ Score: ${this.score}`;
-        };
-
-        const shopDiv = document.createElement('div');
-        shopDiv.style.marginTop = '20px';
-        shopDiv.style.display = 'grid';
-        shopDiv.style.gridTemplateColumns = 'repeat(auto-fit, minmax(clamp(120px, 20vw, 150px), 1fr))';
-        shopDiv.style.gap = '10px';
-        shopDiv.style.maxWidth = '100%';
-        div.appendChild(shopDiv);
-
-        shopItems.forEach(item => {
-            const btn = document.createElement('button');
-            btn.className = 'shop-btn';
-            btn.innerText = `${item.name}\n💰 ${item.cost}`;
-            btn.onclick = () => {
-                if(this.score >= item.cost) {
-                    this.score -= item.cost;
-                    scoreText.innerText = `Score: ${this.score}`;
-                    const sd = document.getElementById('scoreDisplay');
-                    if(sd) sd.innerText = `⭐ Score: ${this.score}`;
-                    item.effect();
-                    item.cost = Math.floor(item.cost * 2.5);
-                    btn.innerText = `${item.name}\n💰 ${item.cost}`;
-                } else alert('Not enough points!');
-            };
-            shopDiv.appendChild(btn);
-        });
-    },
-    startAutoClick() {
-        if(this.clickerInterval) clearInterval(this.clickerInterval);
-        this.clickerInterval = setInterval(() => {
-            this.score += this.pointsPerClick;
-        }, 1000); // Add a time interval for auto-clicking
-    }, // Close the startAutoClick function
     ballbounce() {
-        const div = document.createElement('div');
-        div.style.flex = '1';
-        div.style.width = '100%';
-        div.style.display = 'flex';
-        div.style.justifyContent = 'center';
-        div.style.alignItems = 'center';
-        div.style.padding = '20px';
-        this.modalContent.appendChild(div);
+        const c = document.createElement('canvas'); c.className = 'game-canvas'; c.width = 600; c.height = 400;
+        this.gameArea.appendChild(c);
+        const ctx = c.getContext('2d');
+        let ball = { x: 300, y: 200, dx: 4, dy: 4, r: 8, isFrozen: false };
+        let player = { y: 150, h: 80, w: 10 };
+        let ai = { y: 150, h: 80, w: 10, speed: 3.8 };
 
-        const canvas = document.createElement('canvas');
-        // Use responsive sizing that fits the modal
-        const maxWidth = Math.min(800, this.modalContent.clientWidth - 100);
-        const maxHeight = Math.min(400, this.modalContent.clientHeight - 200);
-        const scale = Math.min(maxWidth / 800, maxHeight / 400);
+        c.onmousemove = (e) => {
+            const rect = c.getBoundingClientRect();
+            player.y = (e.clientY - rect.top) * (c.height / rect.height) - player.h / 2;
+        };
+
+        const loop = () => {
+            if (!ball.isFrozen) {
+                ball.x += ball.dx; ball.y += ball.dy;
+            }
+
+            if (ball.y <= 0 || ball.y >= c.height) ball.dy *= -1;
+
+            let aiCenter = ai.y + ai.h / 2;
+            if (aiCenter < ball.y - 10) ai.y += ai.speed;
+            else if (aiCenter > ball.y + 10) ai.y -= ai.speed;
+
+            // Player Collision
+            if (!ball.isFrozen && ball.x <= player.w + 15 && ball.y > player.y && ball.y < player.y + player.h) {
+                if (this.trollActive) {
+                    ball.isFrozen = true;
+                    // Freeze for 2 seconds
+                    setTimeout(() => {
+                        ball.isFrozen = false;
+                        ball.dx = -Math.abs(ball.dx); // Bounce backwards
+                        ball.dy = Math.random() > 0.5 ? -7 : 7; // Betrayal angle
+                    }, 2000);
+                } else {
+                    ball.dx = Math.abs(ball.dx) + 0.2;
+                    this.updateScore(this.score + 1);
+                }
+            } else if (ball.x < 0) return this.open('ballbounce');
+
+            if (ball.x >= c.width - ai.w - 15 && ball.y > ai.y && ball.y < ai.y + ai.h) {
+                ball.dx = -Math.abs(ball.dx) - 0.2;
+            } else if (ball.x > c.width) {
+                this.updateScore(this.score + 5);
+                ball = { x: 300, y: 200, dx: 4, dy: 4, r: 8, isFrozen: false };
+            }
+
+            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.fillStyle = "#00d4ff"; ctx.fillRect(10, player.y, player.w, player.h);
+            ctx.fillStyle = "#ff006e"; ctx.fillRect(c.width - 20, ai.y, ai.w, ai.h);
+            ctx.fillStyle = ball.isFrozen ? "#ff006e" : "#fff"; // Turn red when frozen
+            ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
+            this.activeLoop = requestAnimationFrame(loop);
+        }; loop();
+    },
+
+    whack() {
+        this.gameArea.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,100px);gap:15px;" id="h"></div>`;
+        const container = document.getElementById('h');
+        for(let i=0;i<9;i++) {
+            const hole = document.createElement('div');
+            hole.style.cssText = "width:100px;height:100px;background:#16213e;border:2px solid #00d4ff;font-size:3rem;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;border-radius:10px;";
+            container.appendChild(hole);
+        }
+        const holes = container.querySelectorAll('div');
         
-        canvas.width = 800 * scale;
-        canvas.height = 400 * scale;
-        canvas.style.maxWidth = '100%';
-        canvas.style.maxHeight = '100%';
-        div.appendChild(canvas);
-        const ctx = canvas.getContext('2d');
-
-        const ball = {x: canvas.width / 2, y: canvas.height / 2, radius: 8, vx: 0, vy: 0};
-        const paddle1 = {y: canvas.height / 2 - 40, height: 80, width: 10, speed: 5};
-        const paddle2 = {y: canvas.height / 2 - 40, height: 80, width: 10, speed: 5};
-        let score1 = 0, score2 = 0;
-
-        const resetBall = (direction = (Math.random() < 0.5 ? -1 : 1)) => {
-            ball.x = canvas.width / 2;
-            ball.y = canvas.height / 2;
-            ball.vx = 4 * direction;
-            ball.vy = (Math.random() - 0.5) * 6;
-        };
-        resetBall();
-
-        // expose canvas and handler so close() can remove it
-        this.activeCanvas = canvas;
-        this.canvasMouseHandler = (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const y = e.clientY - rect.top;
-            paddle1.y = Math.min(canvas.height - paddle1.height, Math.max(0, y - paddle1.height / 2));
-        };
-        canvas.addEventListener('mousemove', this.canvasMouseHandler);
-
-        // keyboard control for paddle1
-        this.keyDownListener = (e) => {
-            if(e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
-                paddle1.y = Math.max(0, paddle1.y - 20);
-            } else if(e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
-                paddle1.y = Math.min(canvas.height - paddle1.height, paddle1.y + 20);
-            }
-        };
-        window.addEventListener('keydown', this.keyDownListener);
-
-        const update = () => {
-            ball.x += ball.vx;
-            ball.y += ball.vy;
-
-            if(ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) ball.vy *= -1;
-            
-            if(ball.x - ball.radius < paddle1.width && ball.y > paddle1.y && ball.y < paddle1.y + paddle1.height) {
-                // reflect and add small speed increase + spin based on hit position
-                ball.vx = Math.abs(ball.vx) + 0.2;
-                ball.vx *= -1;
-                ball.x = paddle1.width + ball.radius;
-                const hit = (ball.y - paddle1.y) - paddle1.height / 2;
-                ball.vy += hit * 0.05;
-            }
-            if(ball.x + ball.radius > canvas.width - paddle2.width && ball.y > paddle2.y && ball.y < paddle2.y + paddle2.height) {
-                ball.vx = -Math.abs(ball.vx) - 0.2;
-                ball.x = canvas.width - paddle2.width - ball.radius;
-                const hit = (ball.y - paddle2.y) - paddle2.height / 2;
-                ball.vy += hit * 0.05;
-            }
-
-            if(ball.x < 0) { score2++; this.score++; resetBall(1); }
-            if(ball.x > canvas.width) { score1++; this.score++; resetBall(-1); }
-
-            // Simple AI for right paddle (smooth following)
-            const targetY = ball.y - paddle2.height / 2;
-            paddle2.y += (targetY - paddle2.y) * 0.12;
-            paddle2.y = Math.min(canvas.height - paddle2.height, Math.max(0, paddle2.y));
-
-            const sd = document.getElementById('scoreDisplay');
-            if(sd) sd.innerText = `⭐ Score: ${this.score} | AI: ${score2}`;
+        container.onmousemove = (e) => {
+            if (!this.trollActive) return;
+            holes.forEach(h => {
+                if (h.innerText === '🦫') {
+                    const rect = h.getBoundingClientRect();
+                    const dist = Math.hypot(e.clientX - (rect.left + 50), e.clientY - (rect.top + 50));
+                    if (dist < 65) h.innerText = ''; 
+                }
+            });
         };
 
-        const draw = () => {
-            ctx.fillStyle = '#0a0e27';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = '#00d4ff';
-            ctx.fillRect(0, paddle1.y, paddle1.width, paddle1.height);
-            ctx.fillRect(canvas.width - paddle2.width, paddle2.y, paddle2.width, paddle2.height);
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            ctx.fill();
-        };
-
-        const gameLoop = () => {
-            update();
-            draw();
-            this.gameLoopId = requestAnimationFrame(gameLoop);
-        };
-
-        gameLoop();
+        const pop = () => {
+            holes.forEach(h => { h.innerText = ''; h.onclick = null; });
+            const r = holes[Math.floor(Math.random() * 9)];
+            r.innerText = '🦫';
+            r.onclick = () => { this.updateScore(this.score + 1); r.innerText = ''; };
+            this.activeLoop = setTimeout(pop, 800);
+        }; pop();
     },
 
     snake() {
-        const div = document.createElement('div');
-        div.style.flex = '1';
-        div.style.width = '100%';
-        div.style.display = 'flex';
-        div.style.flexDirection = 'column';
-        div.style.alignItems = 'center';
-        div.style.justifyContent = 'center';
-        div.style.gap = '12px';
-        div.style.padding = '20px';
-        this.modalContent.appendChild(div);
+        const c = document.createElement('canvas'); c.className='game-canvas'; c.width=400; c.height=400; this.gameArea.appendChild(c);
+        const ctx = c.getContext('2d');
+        let s=[{x:10,y:10}], f={x:5,y:5}, dx=0, dy=0;
+        const oldKey = window.onkeydown;
+        window.onkeydown=(e)=>{ 
+            if(oldKey) oldKey(e);
+            if(e.key=='ArrowUp'&&dy==0){dx=0;dy=-1} if(e.key=='ArrowDown'&&dy==0){dx=0;dy=1} 
+            if(e.key=='ArrowLeft'&&dx==0){dx=-1;dy=0} if(e.key=='ArrowRight'&&dx==0){dx=1;dy=0}
+        };
+        const loop = () => {
+            let h={x:s[0].x+dx, y:s[0].y+dy};
+            if(h.x<0||h.x>=20||h.y<0||h.y>=20||s.some(p=>p.x==h.x&&p.y==h.y)) return this.open('snake');
+            s.unshift(h); if(h.x==f.x&&h.y==f.y){this.updateScore(this.score+10); f={x:Math.floor(Math.random()*20),y:Math.floor(Math.random()*20)}} else s.pop();
+            ctx.fillStyle="#000"; ctx.fillRect(0,0,400,400);
+            ctx.fillStyle="#ff006e"; ctx.fillRect(f.x*20,f.y*20,18,18);
+            ctx.fillStyle="#00d4ff"; s.forEach(p=>ctx.fillRect(p.x*20,p.y*20,18,18));
+            let speed = this.trollActive ? 45 : 90;
+            this.activeLoop = setTimeout(()=>requestAnimationFrame(loop), speed);
+        }; loop();
+    },
 
-        const canvas = document.createElement('canvas');
-        // Use responsive sizing that fits the modal
-        const maxWidth = Math.min(480, this.modalContent.clientWidth - 100);
-        const maxHeight = Math.min(360, this.modalContent.clientHeight - 200);
-        const scale = Math.min(maxWidth / 480, maxHeight / 360);
+    clicker() {
+        let clicks = 0, timeLeft = 30;
+        const b = document.createElement('button'); b.style.cssText="width:150px;height:150px;border-radius:50%;font-size:4rem;cursor:pointer;background:radial-gradient(circle, #ff006e, #764ba2);border:none;box-shadow: 0 0 20px #ff006e;transition:all 0.1s;";
+        b.innerHTML='🍬'; 
+        const timer = document.createElement('div'); timer.style.cssText="font-size:1.5rem;color:#00d4ff;margin-top:20px;";
+        const container = document.createElement('div'); container.style.cssText="display:flex;flex-direction:column;align-items:center;";
+        container.appendChild(b); container.appendChild(timer);
+        this.gameArea.appendChild(container);
         
-        canvas.width = 480 * scale;
-        canvas.height = 360 * scale;
-        canvas.className = 'snake-canvas';
-        canvas.style.maxWidth = '100%';
-        canvas.style.maxHeight = '100%';
-        div.appendChild(canvas);
-        const ctx = canvas.getContext('2d');
-
-        const cols = 24, rows = 18;
-        const cellW = canvas.width / cols, cellH = canvas.height / rows;
-        let snake = [{x:12,y:9}];
-        let dir = {x:1,y:0};
-        let food = null;
-        let speed = 150;
-        let alive = true;
-
-        const placeFood = () => {
-            while(true) {
-                const fx = Math.floor(Math.random()*cols);
-                const fy = Math.floor(Math.random()*rows);
-                if(!snake.some(s=>s.x===fx && s.y===fy)) { food = {x:fx,y:fy}; break; }
-            }
-        };
-        placeFood();
-
-        const drawCell = (x,y, color) => {
-            ctx.fillStyle = color;
-            ctx.fillRect(x*cellW+1, y*cellH+1, cellW-2, cellH-2);
-        };
-
-        const step = () => {
-            if(!alive) return;
-            const head = {x: (snake[0].x + dir.x + cols) % cols, y: (snake[0].y + dir.y + rows) % rows};
-            // collision with body
-            if(snake.some(s=>s.x===head.x && s.y===head.y)) {
-                alive = false;
-                setTimeout(()=>{ alert('Game Over! Final Score: '+this.score); this.close(); }, 80);
-                return;
-            }
-            snake.unshift(head);
-            if(food && head.x===food.x && head.y===food.y) {
-                this.score += 5;
-                const sd = document.getElementById('scoreDisplay'); if(sd) sd.innerText = `⭐ Score: ${this.score}`;
-                placeFood();
-            } else snake.pop();
-            draw();
-        };
-
-        const draw = () => {
-            ctx.fillStyle = '#071028';
-            ctx.fillRect(0,0,canvas.width,canvas.height);
-            // food
-            if(food) drawCell(food.x, food.y, '#ff4757');
-            // snake
-            snake.forEach((s,i)=> drawCell(s.x, s.y, i===0? '#00d4ff' : '#667eea'));
-        };
-
-        this.keyDownListener = (e) => {
-            if(!alive) return;
-            const k = e.key;
-            if(k === 'ArrowUp' && dir.y===0) dir = {x:0,y:-1};
-            if(k === 'ArrowDown' && dir.y===0) dir = {x:0,y:1};
-            if(k === 'ArrowLeft' && dir.x===0) dir = {x:-1,y:0};
-            if(k === 'ArrowRight' && dir.x===0) dir = {x:1,y:0};
-        };
-        window.addEventListener('keydown', this.keyDownListener);
-
-        draw();
-        this.snakeInterval = setInterval(step, speed);
+        b.onclick = () => { clicks++; b.style.transform='scale(0.95)'; setTimeout(()=>b.style.transform='scale(1)',50); };
+        const interval = setInterval(() => {
+            timeLeft--;
+            timer.innerText = `Time: ${timeLeft}s`;
+            if(timeLeft <= 0) { clearInterval(interval); this.updateScore(clicks); this.gameArea.innerHTML='<div style="font-size:2rem;color:#00d4ff;">Final Score: '+clicks+' clicks!</div>'; }
+        }, 1000);
     },
-
-    simon() {
-        this.modalContent.innerHTML = '';
-        this.createScoreDisplay();
-        const container = document.createElement('div');
-        container.style.flex = '1';
-        container.style.width = '100%';
-        container.style.display = 'flex';
-        container.style.flexDirection = 'column';
-        container.style.alignItems = 'center';
-        container.style.justifyContent = 'center';
-        container.style.gap = '12px';
-        container.style.padding = '20px';
-        container.innerHTML = `<h2>🔴🟢 Simon - Repeat the sequence</h2><div id="simonStatus">Press Start</div>`;
-        this.modalContent.appendChild(container);
-
-        const padColors = [
-            {id:'red', color:'#ff4d4d', sound: null},
-            {id:'green', color:'#7ef582', sound: null},
-            {id:'blue', color:'#4da6ff', sound: null},
-            {id:'yellow', color:'#ffd24d', sound: null}
-        ];
-
-        const padsRow = document.createElement('div');
-        padsRow.className = 'color-row';
-        padColors.forEach(p => {
-            const el = document.createElement('div');
-            el.className = 'color-pad';
-            el.style.background = p.color;
-            // Use responsive sizing
-            const padSize = Math.min(140, Math.floor((this.modalContent.clientWidth - 100) / 4));
-            el.style.width = `${padSize}px`;
-            el.style.height = `${padSize}px`;
-            el.id = `pad-${p.id}`;
-            el.innerText = p.id.toUpperCase();
-            el.style.userSelect = 'none';
-            el.dataset.id = p.id;
-            padsRow.appendChild(el);
-            el.onclick = () => this.simonHandleInput(p.id);
-        });
-        container.appendChild(padsRow);
-
-        const controls = document.createElement('div');
-        controls.style.marginTop = '12px';
-        controls.innerHTML = `<button id="simonStart" class="choice-btn">Start</button> <button id="simonReset" class="choice-btn">Reset</button>`;
-        container.appendChild(controls);
-
-        document.getElementById('simonStart').onclick = () => { this.simonStart(); };
-        document.getElementById('simonReset').onclick = () => { this.simonSequence = []; this.simonPosition = 0; document.getElementById('simonStatus').innerText = 'Reset.'; };
-
-        // internal helpers
-        this.simonSequence = [];
-        this.simonPosition = 0;
-        this.simonShowing = false;
-        this.simonTimeouts.forEach(t=>clearTimeout(t)); this.simonTimeouts = [];
-
-        this.simonStart = () => {
-            this.simonSequence.push(['red','green','blue','yellow'][Math.floor(Math.random()*4)]);
-            this.simonPosition = 0;
-            document.getElementById('simonStatus').innerText = `Level ${this.simonSequence.length} - Watch`;
-            this.simonShowSequence();
-        };
-
-        this.simonShowSequence = () => {
-            this.simonShowing = true;
-            let delay = 300;
-            this.simonTimeouts.forEach(t=>clearTimeout(t)); this.simonTimeouts = [];
-            this.simonSequence.forEach((id, idx) => {
-                const t1 = setTimeout(() => {
-                    const el = document.getElementById('pad-'+id);
-                    if(el) { el.style.filter = 'brightness(1.4)'; }
-                }, delay * (idx+1));
-                const t2 = setTimeout(() => {
-                    const el = document.getElementById('pad-'+id);
-                    if(el) { el.style.filter = ''; }
-                    if(idx === this.simonSequence.length - 1) {
-                        this.simonShowing = false;
-                        document.getElementById('simonStatus').innerText = `Your turn (Level ${this.simonSequence.length})`;
-                    }
-                }, delay * (idx+1) + 400);
-                this.simonTimeouts.push(t1,t2);
-            });
-        };
-
-        this.simonHandleInput = (id) => {
-            if(this.simonShowing) return;
-            const expected = this.simonSequence[this.simonPosition];
-            const el = document.getElementById('pad-'+id);
-            if(el) { el.style.filter = 'brightness(1.6)'; setTimeout(()=> el.style.filter = '', 200); }
-            if(id === expected) {
-                this.simonPosition++;
-                this.score += 2;
-                const sd = document.getElementById('scoreDisplay'); if(sd) sd.innerText = `⭐ Score: ${this.score}`;
-                if(this.simonPosition >= this.simonSequence.length) {
-                    document.getElementById('simonStatus').innerText = 'Good! Next level...';
-                    setTimeout(()=> this.simonStart(), 700);
-                }
-            } else {
-                document.getElementById('simonStatus').innerText = 'Wrong! Game Over.';
-                alert('Simon: wrong move. Final score: ' + this.score);
-                this.close();
-            }
-        };
+    reaction() {
+        this.gameArea.innerHTML = `<div id="rb" style="width:100%;height:200px;background:#ff006e;display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;border-radius:15px;">Wait for Green...</div>`;
+        const rb = document.getElementById('rb');
+        setTimeout(() => {
+            rb.style.background = "#00ff88"; rb.innerText = "CLICK!";
+            const start = Date.now();
+            rb.onclick = () => { this.updateScore(Date.now()-start); rb.innerText = this.score + "ms! Play Again?"; rb.onclick = () => this.open('reaction'); };
+        }, Math.random()*3000+2000);
     },
-
+    flappy() {
+        const c = document.createElement('canvas'); c.className='game-canvas'; c.width=320; c.height=480; this.gameArea.appendChild(c);
+        const ctx = c.getContext('2d');
+        let by=200, bv=0, pipes=[], frame=0;
+        window.onmousedown = () => bv = -6;
+        const loop = () => {
+            bv += 0.4; by += bv;
+            if(frame%90==0) pipes.push({x:320, h:Math.random()*200+50});
+            ctx.fillStyle="#000"; ctx.fillRect(0,0,320,480);
+            ctx.fillStyle="#00d4ff"; ctx.fillRect(50,by,20,20);
+            pipes.forEach(p=>{ p.x-=2; ctx.fillStyle="#00ff88"; ctx.fillRect(p.x,0,40,p.h); ctx.fillRect(p.x,p.h+120,40,480); if(p.x==50) this.updateScore(this.score+1); if(p.x<70 && p.x+40>50 && (by<p.h || by+20>p.h+120)) by=999; });
+            if(by>480) return this.open('flappy');
+            frame++; this.activeLoop = requestAnimationFrame(loop);
+        }; loop();
+    },
     mathquiz() {
-        this.modalContent.innerHTML = '';
-        this.createScoreDisplay();
-        const container = document.createElement('div');
-        container.style.flex = '1';
-        container.style.width = '100%';
-        container.style.display = 'flex';
-        container.style.flexDirection = 'column';
-        container.style.alignItems = 'center';
-        container.style.justifyContent = 'center';
-        container.style.gap = '12px';
-        container.style.padding = '20px';
-        container.innerHTML = `<h2>➗ Math Quiz</h2><div id="quizQuestion" style="font-size:clamp(18px, 4vw, 20px);"></div><div id="quizTimer" class="small-panel">Time: 10</div><div id="quizChoices" class="quiz-choices"></div>`;
-        this.modalContent.appendChild(container);
-
-        const questions = [
-            {q:'5 + 7 = ?', a:12, choices:[10,12,11,13]},
-            {q:'9 × 3 = ?', a:27, choices:[24,27,21,30]},
-            {q:'15 ÷ 3 = ?', a:5, choices:[3,4,5,6]},
-            {q:'8² = ?', a:64, choices:[54,64,72,46]},
-            {q:'20 - 6 = ?', a:14, choices:[14,12,15,13]}
-        ];
-        let idx = 0;
-        let timeLeft = 12;
-
-        const loadQuestion = () => {
-            if(idx >= questions.length) {
-                alert('Quiz complete! Final score: ' + this.score);
-                this.close();
-                return;
-            }
-            const q = questions[idx];
-            document.getElementById('quizQuestion').innerText = q.q;
-            const ch = document.getElementById('quizChoices');
-            ch.innerHTML = '';
-            q.choices.forEach(c => {
-                const b = document.createElement('button');
-                b.className = 'choice-btn';
-                b.innerText = c;
-                b.onclick = () => {
-                    if(c === q.a) {
-                        this.score += 10;
-                        const sd = document.getElementById('scoreDisplay'); if(sd) sd.innerText = `⭐ Score: ${this.score}`;
-                    } else {
-                        this.score = Math.max(0, this.score - 3);
-                        const sd = document.getElementById('scoreDisplay'); if(sd) sd.innerText = `⭐ Score: ${this.score}`;
-                    }
-                    idx++;
-                    resetTimer();
-                    loadQuestion();
-                };
-                ch.appendChild(b);
-            });
-            timeLeft = 12;
-            document.getElementById('quizTimer').innerText = `Time: ${timeLeft}s`;
-            this.mathTimer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('quizTimer').innerText = `Time: ${timeLeft}s`;
-                if(timeLeft <= 0) {
-                    clearInterval(this.mathTimer);
-                    this.mathTimer = null;
-                    // time out = wrong
-                    this.score = Math.max(0, this.score - 3);
-                    const sd = document.getElementById('scoreDisplay'); if(sd) sd.innerText = `⭐ Score: ${this.score}`;
-                    idx++;
-                    loadQuestion();
-                }
-            }, 1000);
-        };
-
-        const resetTimer = () => {
-            if(this.mathTimer) { clearInterval(this.mathTimer); this.mathTimer = null; }
-        };
-
-        loadQuestion();
+        const a=Math.floor(Math.random()*20), b=Math.floor(Math.random()*20);
+        this.gameArea.innerHTML = `<h3>${a} + ${b}?</h3><input type="number" id="ans" style="padding:10px;border-radius:5px;"><button onclick="GameManager.checkMath(${a+b})" style="padding:10px;margin-left:10px;">Go</button>`;
     },
-
-    motox3m() {
-        this.embedGame('https://games.cdn.famobi.com/html5games/m/moto-x3m/v100/?fg_domain=play.famobi.com&fg_aid=A1000-1 ', 'Moto X3M');
+    checkMath(correct) { if(document.getElementById('ans').value == correct) { this.updateScore(this.score+1); this.mathquiz(); } else this.open('mathquiz'); },
+    memory() {
+        const icons = ['🍎','🍎','🍌','🍌','🍇','🍇','🍒','🍒'].sort(()=>Math.random()-0.5);
+        this.gameArea.innerHTML = `<div style="display:grid;grid-template-columns:repeat(4,70px);gap:10px;">${icons.map(i=>`<div class="t" data-i="${i}" style="width:70px;height:70px;background:#16213e;border:2px solid #00d4ff;display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;" onclick="GameManager.tile(this)">?</div>`).join('')}</div>`;
     },
-
-    bouncemasters() {
-        this.embedGame('https://games.cdn.famobi.com/html5games/b/bouncemasters/v030/?fg_domain=play.famobi.com ', 'Bouncemasters');
-    },
-
-    gnmath() {
-        const div = document.createElement('div');
-        div.style.flex = '1';
-        div.style.width = '100%';
-        const iframe = document.createElement('iframe');
-        iframe.src = 'https://gn-math.github.io/ ';
-        iframe.width = '800';
-        iframe.height = '600';
-        iframe.style.border = 'none';
-        iframe.allowFullscreen = true;
-        div.appendChild(iframe);
-        this.modalContent.appendChild(div);
-    },
-
-    embedGame(src, title = '') {
-        if(title) {
-            const h = document.createElement('h2');
-            h.innerText = title;
-            this.modalContent.appendChild(h);
+    tile(t) {
+        if(t.innerText!=='?' || this.busy) return;
+        t.innerText = t.dataset.i;
+        const open = Array.from(document.querySelectorAll('.t')).filter(x=>x.innerText!=='?' && !x.matched);
+        if(open.length==2) {
+            this.busy = true;
+            if(open[0].dataset.i == open[1].dataset.i) { open.forEach(x=>x.matched=true); this.updateScore(this.score+10); this.busy=false; }
+            else setTimeout(()=>{ open.forEach(x=>x.innerText='?'); this.busy=false; }, 500);
         }
-
-        const wrap = document.createElement('div');
-        wrap.className = 'iframe-wrap';
-
-        const iframe = document.createElement('iframe');
-        iframe.src = src;
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.border = 'none';
-        iframe.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; microphone; camera; accelerometer; gyroscope; payment');
-        try {
-            if (!/famobi\.com/i.test(src)) {
-                iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox');
-            }
-        } catch (e) {}
-        iframe.setAttribute('allowfullscreen', 'true');
-        iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
-
-        const loader = document.createElement('div');
-        loader.className = 'iframe-loader';
-        loader.innerHTML = '<span class="iframe-spinner" aria-hidden="true"></span><span>Loading game...</span>';
-
-        const overlay = document.createElement('div');
-        overlay.className = 'iframe-overlay';
-        overlay.innerText = 'Click to focus / Play';
-        overlay.addEventListener('click', () => {
-            overlay.style.display = 'none';
-            loader.style.display = 'none';
-            try { iframe.contentWindow && iframe.contentWindow.focus(); } catch(e) {}
-        });
-
-        const safeOnLoad = () => {
-            loader.style.display = 'none';
-            try { iframe.contentWindow && iframe.contentWindow.focus(); } catch(e) {}
-        };
-        iframe.addEventListener('load', safeOnLoad);
-
-        iframe.addEventListener('error', () => {
-            loader.innerHTML = '<span>Failed to load game.</span>';
-            setTimeout(() => { loader.style.display = 'none'; }, 2000);
-        });
-
-        wrap.appendChild(iframe);
-        wrap.appendChild(loader);
-        wrap.appendChild(overlay);
-        wrap.style.flex = '1';
-        wrap.style.minHeight = '480px';
-        this.modalContent.appendChild(wrap);
-
-        const loaderTimeout = setTimeout(() => { loader.style.display = 'none'; }, 8000);
-        iframe.addEventListener('load', () => clearTimeout(loaderTimeout));
-    }
+    },
+    simon() {
+        this.gameArea.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">${[0,1,2,3].map(i=>`<div id="s${i}" onclick="GameManager.sPress(${i})" style="width:100px;height:100px;background:${['#ff006e','#00d4ff','#00ff88','#ffbe0b'][i]};opacity:0.5;cursor:pointer;"></div>`).join('')}</div>`;
+        this.seq = []; this.sNext();
+    },
+    sNext() {
+        this.seq.push(Math.floor(Math.random()*4)); this.uSeq = [];
+        this.seq.forEach((c,i)=>setTimeout(()=>{ let el=document.getElementById('s'+c); if(el){el.style.opacity=1; setTimeout(()=>el.style.opacity=0.5,300);} }, i*600));
+    },
+    sPress(i) {
+        this.uSeq.push(i);
+        if(this.uSeq[this.uSeq.length-1] !== this.seq[this.uSeq.length-1]) return this.open('simon');
+        if(this.uSeq.length == this.seq.length) { this.updateScore(this.score+1); setTimeout(()=>this.sNext(), 1000); }
+    },
+    dino() {
+        const c = document.createElement('canvas'); c.className='game-canvas'; c.width=600; c.height=150; this.gameArea.appendChild(c);
+        const ctx = c.getContext('2d');
+        let dy=100, dv=0, ox=600;
+        window.onkeydown = () => { if(dy==100) dv=-10; };
+        const loop = () => {
+            dv+=0.6; dy+=dv; if(dy>100){dy=100;dv=0;} ox-=5; if(ox<-20){ox=600;this.updateScore(this.score+1);}
+            ctx.fillStyle="#000"; ctx.fillRect(0,0,600,150); ctx.fillStyle="#00d4ff"; ctx.fillRect(50,dy,30,30);
+            ctx.fillStyle="#ff006e"; ctx.fillRect(ox,100,20,30);
+            if(ox<80 && ox>50 && dy>70) return this.open('dino');
+            this.activeLoop = requestAnimationFrame(loop);
+        }; loop();
+    },
+    breakout() {
+        const c = document.createElement('canvas'); c.className='game-canvas'; c.width=400; c.height=400; this.gameArea.appendChild(c);
+        const ctx = c.getContext('2d');
+        let x=200, y=350, dx=2, dy=-2, px=150, bks=[];
+        for(let r=0;r<3;r++) for(let col=0;col<5;col++) bks.push({x:col*80,y:r*30,v:1});
+        c.onmousemove=(e)=>{ px = e.offsetX - 40; };
+        const loop = () => {
+            x+=dx; y+=dy; if(x<0||x>400)dx*=-1; if(y<0)dy*=-1;
+            if(y>380 && x>px && x<px+80)dy*=-1;
+            bks.forEach(b=>{ if(b.v && x>b.x && x<b.x+75 && y>b.y && y<b.y+25){b.v=0; dy*=-1; this.updateScore(this.score+10);}});
+            if(y>400) return this.open('breakout');
+            ctx.fillStyle="#000"; ctx.fillRect(0,0,400,400); ctx.fillStyle="#ff006e"; bks.forEach(b=>{if(b.v)ctx.fillRect(b.x+2,b.y+2,75,25)});
+            ctx.fillStyle="#00d4ff"; ctx.fillRect(px,385,80,10); ctx.beginPath();ctx.arc(x,y,6,0,7);ctx.fill();
+            this.activeLoop = requestAnimationFrame(loop);
+        }; loop();
+    },
+    motox3m(){ this.embed('https://playgama.com/game/moto-x3m'); },
+    bouncemasters(){ this.embed('https://www.crazygames.com/embed/bounce-masters'); },
+    gnmath(){ this.embed('https://doyourhomework.dream.org.il/'); },
+    embed(u){ const ifr=document.createElement('iframe'); ifr.src=u; ifr.style.cssText="width:100%; height:100%; border:none;"; this.gameArea.appendChild(ifr); }
 };
-
-// Initialize DotBackground after DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    new DotBackground();
-});
+document.addEventListener('DOMContentLoaded', () => new DotBackground());
 </script>
-
 </body>
 </html>
