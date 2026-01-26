@@ -106,12 +106,21 @@
             transition: all 0.15s;
             position: relative;
         }
+        
+        .sys-btn:focus-visible {
+            outline: 2px solid var(--p-green);
+            outline-offset: 2px;
+        }
 
         .sys-btn:hover { 
             background: var(--p-green); 
             color: #000; 
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(51, 255, 0, 0.3);
+        }
+
+        .sys-btn:active {
+            transform: translateY(0);
         }
 
         .sys-btn:active {
@@ -200,6 +209,11 @@
             outline: none;
             font-size: 12px;
         }
+        
+        #term-in:focus {
+            border-color: var(--p-green);
+            box-shadow: 0 0 0 2px rgba(51, 255, 0, 0.2);
+        }
 
         canvas.game-surface {
             background: #000;
@@ -268,6 +282,45 @@
             flex-direction: column; 
             align-items: center; 
             justify-content: center;
+        }
+
+        #win-screen {
+            position: fixed; 
+            inset: 0; 
+            background: #000; 
+            z-index: 99999;
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+        }
+
+        #escape-hud {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            color: var(--p-green);
+            font-size: 12px;
+            z-index: 1000;
+            display: none;
+            background: rgba(0, 20, 0, 0.8);
+            padding: 10px;
+            border: 1px solid var(--p-green);
+        }
+
+        #escape-instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--p-green);
+            font-size: 14px;
+            z-index: 1000;
+            display: none;
+            background: rgba(0, 20, 0, 0.9);
+            padding: 15px 30px;
+            border: 2px solid var(--p-green);
+            text-align: center;
         }
 
         #stats-panel {
@@ -363,8 +416,138 @@
             background: var(--p-green);
             color: #000;
         }
+
+        #update-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 20, 0, 0.98);
+            border: var(--border);
+            padding: 30px 40px;
+            z-index: 100000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.9);
+            min-width: 300px;
+            text-align: center;
+        }
+
+        #update-popup.show {
+            display: flex;
+        }
+
+        #update-popup h2 {
+            color: var(--p-green);
+            margin-bottom: 15px;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        #update-popup p {
+            color: var(--p-green);
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        #popup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 99999;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+
+        #popup-overlay.show {
+            display: block;
+        }
+
+        .pause-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--p-amber);
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--p-amber);
+            display: none;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .pause-indicator.show {
+            display: block;
+            animation: pulse 1s infinite;
+        }
+
+        .key-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 9px;
+            color: var(--p-dim);
+            opacity: 0.6;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        #update-popup.show {
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 20, 0, 0.95);
+            border: 1px solid var(--p-green);
+            padding: 10px 15px;
+            font-size: 11px;
+            color: var(--p-green);
+            z-index: 50000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .notification.show {
+            display: block;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Fallback if Three.js fails to load
+        window.addEventListener('error', function(e) {
+            if (e.target && e.target.src && e.target.src.includes('three.min.js')) {
+                console.error('Failed to load Three.js. 3D features will be disabled.');
+                document.getElementById('world-canvas').innerHTML = '<div style="color:var(--p-green);padding:20px;text-align:center;">3D engine unavailable. Games still functional.</div>';
+            }
+        }, true);
+    </script>
 </head>
 <body>
 
@@ -376,61 +559,74 @@
         <div id="world-canvas"></div>
 
         <div id="desktop">
-            <div class="taskbar">
-                <button class="sys-btn" data-app="snake" onclick="UI.toggle('snake')">SNAKE.EXE</button>
-                <button class="sys-btn" data-app="pong" onclick="UI.toggle('pong')">PONG.EXE</button>
-                <button class="sys-btn" data-app="dodge" onclick="UI.toggle('dodge')">DODGE.EXE</button>
-                <button class="sys-btn" data-app="term" onclick="UI.toggle('term')">TERMINAL</button>
+            <div class="taskbar" role="toolbar" aria-label="Application launcher">
+                <button class="sys-btn" data-app="snake" onclick="UI.toggle('snake')" onmousedown="SoundManager.playClick()" aria-label="Launch Snake game">SNAKE.EXE</button>
+                <button class="sys-btn" data-app="pong" onclick="UI.toggle('pong')" onmousedown="SoundManager.playClick()" aria-label="Launch Pong game">PONG.EXE</button>
+                <button class="sys-btn" data-app="dodge" onclick="UI.toggle('dodge')" onmousedown="SoundManager.playClick()" aria-label="Launch Dodge game">DODGE.EXE</button>
+                <button class="sys-btn" data-app="term" onclick="UI.toggle('term')" onmousedown="SoundManager.playClick()" aria-label="Open Terminal">TERMINAL</button>
                 <div style="flex:1"></div>
-                <div style="font-size:11px;">PROXIMITY: <span id="dist-ui">--</span>m | SURVIVAL: <span id="time-ui">0</span>s</div>
+                <button class="sys-btn" onclick="SoundManager.toggleMute()" id="sound-toggle" aria-label="Toggle sound">🔊</button>
+                <div style="font-size:11px;" aria-live="polite" aria-atomic="true">PROXIMITY: <span id="dist-ui">--</span>m | SURVIVAL: <span id="time-ui">0</span>s</div>
             </div>
 
             <div id="win-snake" class="window" style="top:60px; left:40px;">
                 <div class="win-title" onmousedown="WindowManager.initDrag(event, 'win-snake')">
                     NEURAL_SNAKE_V12 
-                    <span class="win-close" onclick="UI.toggle('snake')">[X]</span>
+                    <span class="win-close" onclick="UI.toggle('snake')" onmousedown="SoundManager.playClick()">[X]</span>
                 </div>
                 <div class="win-body">
                     <div class="game-score">SCORE: <span id="snake-score">0</span></div>
-                    <canvas id="can-snake" class="game-surface" width="300" height="300"></canvas>
-                    <button class="sys-btn" style="width:100%; margin-top:10px;" onclick="Snake.start()">BOOT SEQUENCE</button>
+                    <div style="position: relative;">
+                        <canvas id="can-snake" class="game-surface" width="300" height="300"></canvas>
+                        <div class="pause-indicator" id="snake-pause">⏸ PAUSED</div>
+                    </div>
+                    <button class="sys-btn" style="width:100%; margin-top:10px;" onclick="Snake.start()" onmousedown="SoundManager.playClick()">BOOT SEQUENCE</button>
+                    <div class="key-hint">Arrow Keys: Move | Space: Pause</div>
                 </div>
             </div>
 
             <div id="win-pong" class="window" style="top:100px; left:400px;">
                 <div class="win-title" onmousedown="WindowManager.initDrag(event, 'win-pong')">
                     PONG_SYNC_LINK 
-                    <span class="win-close" onclick="UI.toggle('pong')">[X]</span>
+                    <span class="win-close" onclick="UI.toggle('pong')" onmousedown="SoundManager.playClick()">[X]</span>
                 </div>
                 <div class="win-body">
                     <div class="game-score">SCORE: <span id="pong-score">0</span></div>
-                    <canvas id="can-pong" class="game-surface" width="400" height="220"></canvas>
-                    <button class="sys-btn" style="width:100%; margin-top:10px;" onclick="Pong.start()">INIT LINK</button>
+                    <div style="position: relative;">
+                        <canvas id="can-pong" class="game-surface" width="400" height="220"></canvas>
+                        <div class="pause-indicator" id="pong-pause">⏸ PAUSED</div>
+                    </div>
+                    <button class="sys-btn" style="width:100%; margin-top:10px;" onclick="Pong.start()" onmousedown="SoundManager.playClick()">INIT LINK</button>
+                    <div class="key-hint">Mouse: Move Paddle | Space: Pause</div>
                 </div>
             </div>
 
             <div id="win-dodge" class="window" style="top:140px; left:200px;">
                 <div class="win-title" onmousedown="WindowManager.initDrag(event, 'win-dodge')">
                     DODGE_PROTOCOL 
-                    <span class="win-close" onclick="UI.toggle('dodge')">[X]</span>
+                    <span class="win-close" onclick="UI.toggle('dodge')" onmousedown="SoundManager.playClick()">[X]</span>
                 </div>
                 <div class="win-body">
                     <div class="game-score">SCORE: <span id="dodge-score">0</span></div>
                     <div class="game-info">LIVES: <span id="dodge-lives">3</span></div>
-                    <canvas id="can-dodge" class="game-surface" width="300" height="400"></canvas>
-                    <button class="sys-btn" style="width:100%; margin-top:10px;" onclick="Dodge.start()">ACTIVATE</button>
+                    <div style="position: relative;">
+                        <canvas id="can-dodge" class="game-surface" width="300" height="400"></canvas>
+                        <div class="pause-indicator" id="dodge-pause">⏸ PAUSED</div>
+                    </div>
+                    <button class="sys-btn" style="width:100%; margin-top:10px;" onclick="Dodge.start()" onmousedown="SoundManager.playClick()">ACTIVATE</button>
+                    <div class="key-hint">Mouse: Move | Space: Pause</div>
                 </div>
             </div>
 
             <div id="win-term" class="window" style="top:380px; left:80px; width:500px;">
                 <div class="win-title" onmousedown="WindowManager.initDrag(event, 'win-term')">
                     ROOT_SHELL 
-                    <span class="win-close" onclick="UI.toggle('term')">[X]</span>
+                    <span class="win-close" onclick="UI.toggle('term')" onmousedown="SoundManager.playClick()">[X]</span>
                 </div>
                 <div class="win-body">
                     <div id="term-out">VOID_OS Kernel v26.0 ULTIMATE ready...
 Type 'help' for available commands.</div>
-                    <input type="text" id="term-in" placeholder="Enter directive..." autocomplete="off">
+                    <input type="text" id="term-in" placeholder="Enter directive..." autocomplete="off" aria-label="Terminal input">
                 </div>
             </div>
 
@@ -449,6 +645,12 @@ Type 'help' for available commands.</div>
                 <div>ACTIVE PROCESSES: <span id="proc-count">0</span></div>
                 <div>DRAIN RATE: <span id="drain-rate">0.08</span>%/s</div>
                 <div style="margin-top:5px; color: var(--p-amber);">MULTIPLIER: x<span id="combo-ui">1.0</span></div>
+                <div style="margin-top:10px; color: var(--p-blue); border-top: 1px solid var(--p-dim); padding-top:5px;">
+                    WIN PROGRESS: <span id="win-progress">0</span>/300s
+                    <div style="width:100%; height:4px; background:rgba(0,0,0,0.5); border:1px solid var(--p-dim); margin-top:3px;">
+                        <div id="win-progress-bar" style="height:100%; background:var(--p-blue); width:0%; transition:width 0.3s;"></div>
+                    </div>
+                </div>
             </div>
 
             <div id="achievement-panel">
@@ -460,28 +662,277 @@ Type 'help' for available commands.</div>
             <div id="powerup-notify"></div>
         </div>
 
+        <div id="popup-overlay" onclick="UI.closeUpdatePopup()"></div>
+        <div id="update-popup">
+            <h2>SYSTEM UPDATED</h2>
+            <p>VOID_OS has been updated with new features.</p>
+            <p style="font-size:10px; margin-top:10px; opacity:0.7;">Press ESC or click outside to close</p>
+            <button class="sys-btn" onclick="UI.closeUpdatePopup()" onmousedown="SoundManager.playClick()" style="margin-top:15px;">ACKNOWLEDGE</button>
+        </div>
+
+        <div id="notification" class="notification"></div>
+
         <div id="death-screen">
             <h1 style="color:var(--p-red); font-size:4rem; letter-spacing:10px;">CARRIER LOST</h1>
             <p style="margin-top:20px; font-size:1.2rem;">BIOMETRIC DATA PURGED FROM KERNEL.</p>
             <p style="margin-top:10px; color:var(--p-amber);">CAUSE: <span id="death-reason"></span></p>
             <p style="margin-top:20px; font-size:1rem;">SURVIVED: <span id="final-time"></span> seconds</p>
             <p style="margin-top:5px; font-size:1rem;">HIGH SCORE: <span id="high-score"></span> seconds</p>
-            <button class="sys-btn" style="margin-top:30px; font-size:20px; padding:10px 30px;" onclick="location.reload()">RE-INITIALIZE</button>
+            <button class="sys-btn" style="margin-top:30px; font-size:20px; padding:10px 30px;" onclick="location.reload()" onmousedown="SoundManager.playClick()">RE-INITIALIZE</button>
+        </div>
+
+        <div id="win-screen">
+            <h1 style="color:var(--p-green); font-size:4rem; letter-spacing:10px;">ENTITY REPELLED</h1>
+            <p style="margin-top:20px; font-size:1.2rem; color:var(--p-green);">KERNEL STABILIZED. ESCAPE PROTOCOL INITIATED.</p>
+            <p style="margin-top:10px; color:var(--p-amber);">SURVIVED: <span id="win-time"></span> seconds</p>
+            <button class="sys-btn" style="margin-top:30px; font-size:20px; padding:10px 30px;" onclick="World3D.startEscape()" onmousedown="SoundManager.playClick()">BEGIN ESCAPE</button>
+        </div>
+
+        <div id="escape-hud">
+            <div>WASD: Move | Mouse: Look | Find the EXIT</div>
+            <div style="margin-top:10px;">Distance to Exit: <span id="exit-distance">--</span>m</div>
+        </div>
+
+        <div id="escape-instructions">
+            ESCAPE THE BASEMENT - Find the glowing EXIT door
         </div>
     </div>
 </div>
 
 <script>
 // =============================================================================
+// SOUND SYSTEM
+// =============================================================================
+
+const SoundManager = {
+    audioContext: null,
+    muted: false,
+    volume: 0.3,
+    
+    init() {
+        try {
+            // Create audio context (will be created on first user interaction)
+            this.audioContext = null;
+            // Check if sound was previously muted
+            const savedMute = localStorage.getItem('voidOsMuted');
+            if (savedMute === 'true') {
+                this.muted = true;
+                this.updateMuteButton();
+            }
+        } catch (e) {
+            console.warn('Sound system initialization failed:', e);
+        }
+    },
+    
+    getContext() {
+        if (!this.audioContext) {
+            try {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.warn('Web Audio API not supported');
+                return null;
+            }
+        }
+        // Resume if suspended (required for some browsers)
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+        return this.audioContext;
+    },
+    
+    playTone(frequency, duration, type = 'sine', volume = null) {
+        if (this.muted || !this.getContext()) return;
+        
+        const ctx = this.getContext();
+        const vol = volume !== null ? volume : this.volume;
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = type;
+        
+        gainNode.gain.setValueAtTime(0, ctx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+        
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + duration);
+    },
+    
+    playBeep(frequency = 440, duration = 0.1) {
+        this.playTone(frequency, duration, 'sine');
+    },
+    
+    playClick() {
+        this.playTone(800, 0.05, 'square', 0.1);
+    },
+    
+    playSuccess() {
+        this.playTone(523, 0.1, 'sine');
+        setTimeout(() => this.playTone(659, 0.1, 'sine'), 100);
+        setTimeout(() => this.playTone(784, 0.15, 'sine'), 200);
+    },
+    
+    playError() {
+        // More menacing error sound
+        this.playTone(120, 0.25, 'sawtooth', 0.5);
+        setTimeout(() => this.playTone(80, 0.2, 'sawtooth', 0.4), 150);
+    },
+    
+    playWarning() {
+        // Deep, ominous warning
+        this.playTone(80, 0.4, 'sawtooth', 0.4);
+        setTimeout(() => this.playTone(60, 0.3, 'sawtooth', 0.3), 200);
+    },
+    
+    playPowerup() {
+        // Slightly more eerie but still positive
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                this.playTone(330 + (i * 55), 0.12, 'sine');
+            }, i * 80);
+        }
+    },
+    
+    playHit() {
+        // Darker, more impactful hit sound
+        this.playTone(150, 0.12, 'sawtooth', 0.3);
+        setTimeout(() => this.playTone(100, 0.1, 'sawtooth', 0.2), 50);
+    },
+    
+    playCollect() {
+        // More subtle, less cheerful
+        this.playTone(440, 0.08, 'sine');
+        setTimeout(() => this.playTone(550, 0.08, 'sine'), 40);
+    },
+    
+    playGameOver() {
+        // Deep, terrifying game over
+        this.playTone(60, 0.5, 'sawtooth', 0.6);
+        setTimeout(() => this.playTone(40, 0.6, 'sawtooth', 0.6), 400);
+        setTimeout(() => this.playTone(30, 0.4, 'sawtooth', 0.5), 800);
+    },
+    
+    playEntityApproach() {
+        // Deep, pulsing threat sound
+        const ctx = this.getContext();
+        if (!ctx || this.muted) return;
+        
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        oscillator.frequency.value = 50;
+        oscillator.type = 'sawtooth';
+        
+        gainNode.gain.setValueAtTime(0, ctx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.1);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+        
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.8);
+    },
+    
+    playEntityNear() {
+        // Distorted, menacing sound when entity is very close
+        const ctx = this.getContext();
+        if (!ctx || this.muted) return;
+        
+        // Create multiple oscillators for distortion effect
+        for (let i = 0; i < 3; i++) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.frequency.value = 40 + (i * 10);
+            osc.type = 'sawtooth';
+            
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            
+            osc.start(ctx.currentTime + (i * 0.05));
+            osc.stop(ctx.currentTime + 0.3 + (i * 0.05));
+        }
+    },
+    
+    playAmbient() {
+        // Subtle background tone
+        if (this.muted) return;
+        const ctx = this.getContext();
+        if (!ctx) return;
+        
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        oscillator.frequency.value = 60;
+        oscillator.type = 'sine';
+        gainNode.gain.value = 0.02;
+        
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + 0.5);
+    },
+    
+    toggleMute() {
+        this.muted = !this.muted;
+        this.updateMuteButton();
+        try {
+            localStorage.setItem('voidOsMuted', this.muted.toString());
+        } catch (e) {
+            console.warn('Could not save mute state:', e);
+        }
+        if (!this.muted) {
+            this.playClick();
+        }
+    },
+    
+    updateMuteButton() {
+        const btn = document.getElementById('sound-toggle');
+        if (btn) {
+            btn.textContent = this.muted ? '🔇' : '🔊';
+        }
+    }
+};
+
+// =============================================================================
 // CORE SYSTEM
 // =============================================================================
 
 const GameState = {
-    highScore: parseInt(localStorage.getItem('voidOsHighScore') || '0'),
+    highScore: 0,
     survivalTime: 0,
     combo: 1.0,
     shield: 100,
-    achievements: new Set(JSON.parse(localStorage.getItem('voidOsAchievements') || '[]'))
+    achievements: new Set(),
+    
+    init() {
+        try {
+            this.highScore = parseInt(localStorage.getItem('voidOsHighScore') || '0') || 0;
+            const savedAchievements = localStorage.getItem('voidOsAchievements');
+            if (savedAchievements) {
+                try {
+                    this.achievements = new Set(JSON.parse(savedAchievements));
+                } catch (e) {
+                    console.warn('Could not parse achievements:', e);
+                    this.achievements = new Set();
+                }
+            }
+        } catch (e) {
+            console.warn('Could not load game state from localStorage:', e);
+            this.highScore = 0;
+            this.achievements = new Set();
+        }
+    }
 };
 
 const UI = {
@@ -491,54 +942,132 @@ const UI = {
     timeInterval: null,
     
     init() {
-        World3D.init();
-        Terminal.init();
-        this.tickInterval = setInterval(() => this.tick(), 1000);
-        this.timeInterval = setInterval(() => this.updateTime(), 1000);
+        try {
+            if (typeof World3D !== 'undefined') {
+                World3D.init();
+            }
+            if (typeof Terminal !== 'undefined') {
+                Terminal.init();
+            }
+            this.tickInterval = setInterval(() => this.tick(), 1000);
+            this.timeInterval = setInterval(() => this.updateTime(), 1000);
+            
+            this.mouseMoveHandler = (e) => WindowManager.handleDrag(e);
+            this.mouseUpHandler = () => WindowManager.endDrag();
+            window.addEventListener('mousemove', this.mouseMoveHandler);
+            window.addEventListener('mouseup', this.mouseUpHandler);
+            
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', () => this.cleanup());
+            
+            this.updateStats();
+            this.updateButtons();
+            
+            // Keyboard shortcuts
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.closeUpdatePopup();
+                    // Pause/unpause games
+                    if (typeof Snake !== 'undefined' && Snake.isRunning) Snake.togglePause();
+                    if (typeof Pong !== 'undefined' && Pong.isRunning) Pong.togglePause();
+                    if (typeof Dodge !== 'undefined' && Dodge.isRunning) Dodge.togglePause();
+                }
+                // Quick app shortcuts
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === '1') { e.preventDefault(); this.toggle('snake'); }
+                    if (e.key === '2') { e.preventDefault(); this.toggle('pong'); }
+                    if (e.key === '3') { e.preventDefault(); this.toggle('dodge'); }
+                    if (e.key === 't') { e.preventDefault(); this.toggle('term'); }
+                }
+            });
+        } catch (error) {
+            console.error('Error initializing UI:', error);
+        }
+    },
+    
+    cleanup() {
+        if (this.tickInterval) clearInterval(this.tickInterval);
+        if (this.timeInterval) clearInterval(this.timeInterval);
+        if (this.mouseMoveHandler) window.removeEventListener('mousemove', this.mouseMoveHandler);
+        if (this.mouseUpHandler) window.removeEventListener('mouseup', this.mouseUpHandler);
         
-        window.addEventListener('mousemove', (e) => WindowManager.handleDrag(e));
-        window.addEventListener('mouseup', () => WindowManager.endDrag());
-        
-        this.updateStats();
-        this.updateButtons();
+        // Cleanup game timers
+        if (typeof Snake !== 'undefined' && Snake.timer) clearInterval(Snake.timer);
+        if (typeof Pong !== 'undefined' && Pong.timer) clearInterval(Pong.timer);
+        if (typeof Dodge !== 'undefined' && Dodge.timer) clearInterval(Dodge.timer);
     },
 
     tick() {
-        const drainRate = (this.openApps.size * 0.15) + 0.08;
-        this.power = Math.max(0, this.power - drainRate);
-        
-        // Shield regeneration
-        if (GameState.shield < 100) {
-            GameState.shield = Math.min(100, GameState.shield + 0.5);
-        }
-        
-        const batFill = document.getElementById('bat-fill');
-        batFill.style.width = this.power + "%";
-        
-        batFill.classList.remove('warning', 'critical');
-        if (this.power <= 25) batFill.classList.add('critical');
-        else if (this.power <= 50) batFill.classList.add('warning');
-        
-        document.getElementById('shield-fill').style.width = GameState.shield + "%";
-        document.getElementById('drain-rate').textContent = drainRate.toFixed(2);
-        document.getElementById('combo-ui').textContent = GameState.combo.toFixed(1);
-        
-        // Combo decay
-        if (GameState.combo > 1.0) {
-            GameState.combo = Math.max(1.0, GameState.combo - 0.05);
-        }
-        
-        if (this.power <= 0) {
-            World3D.fail("BATTERY DEPLETED");
+        try {
+            const drainRate = (this.openApps.size * 0.15) + 0.08;
+            this.power = Math.max(0, this.power - drainRate);
+            
+            // Shield regeneration
+            if (GameState.shield < 100) {
+                GameState.shield = Math.min(100, GameState.shield + 0.5);
+            }
+            
+            const batFill = document.getElementById('bat-fill');
+            const shieldFill = document.getElementById('shield-fill');
+            const drainRateEl = document.getElementById('drain-rate');
+            const comboEl = document.getElementById('combo-ui');
+            
+            if (batFill) {
+                const oldPower = parseFloat(batFill.style.width) || 100;
+                batFill.style.width = this.power + "%";
+                batFill.classList.remove('warning', 'critical');
+                if (this.power <= 25) {
+                    batFill.classList.add('critical');
+                    if (oldPower > 25) SoundManager.playWarning();
+                } else if (this.power <= 50) {
+                    batFill.classList.add('warning');
+                    if (oldPower > 50) SoundManager.playBeep(400, 0.1);
+                }
+            }
+            
+            if (shieldFill) shieldFill.style.width = GameState.shield + "%";
+            if (drainRateEl) drainRateEl.textContent = drainRate.toFixed(2);
+            if (comboEl) comboEl.textContent = GameState.combo.toFixed(1);
+            
+            // Combo decay
+            if (GameState.combo > 1.0) {
+                GameState.combo = Math.max(1.0, GameState.combo - 0.05);
+            }
+            
+            if (this.power <= 0 && World3D.isLive && !World3D.escapeMode) {
+                World3D.fail("BATTERY DEPLETED");
+            }
+            
+            // Win condition: Survive 300 seconds (5 minutes)
+            if (GameState.survivalTime >= 300 && World3D.isLive && !World3D.escapeMode) {
+                World3D.win();
+            }
+            
+            // Alternative win: Push entity back to 60m and keep it there
+            if (World3D.dist >= 60 && World3D.isLive && !World3D.escapeMode) {
+                World3D.entityPushBackTime++;
+                if (World3D.entityPushBackTime >= 30) { // 30 seconds at max distance
+                    World3D.win();
+                }
+            } else {
+                World3D.entityPushBackTime = 0;
+            }
+        } catch (error) {
+            console.error('Error in UI.tick:', error);
         }
     },
 
     updateTime() {
-        GameState.survivalTime++;
-        document.getElementById('time-ui').textContent = GameState.survivalTime;
-        
-        // Achievement checks
-        this.checkAchievements();
+        try {
+            GameState.survivalTime++;
+            const timeUI = document.getElementById('time-ui');
+            if (timeUI) timeUI.textContent = GameState.survivalTime;
+            
+            // Achievement checks
+            this.checkAchievements();
+        } catch (error) {
+            console.error('Error in updateTime:', error);
+        }
     },
 
     toggle(id) {
@@ -546,17 +1075,20 @@ const UI = {
         if (win.style.display === 'flex') {
             win.style.display = 'none';
             this.openApps.delete(id);
+            SoundManager.playClick();
         } else {
             win.style.display = 'flex';
             this.openApps.add(id);
             WindowManager.bringToFront(win);
+            SoundManager.playBeep(600, 0.08);
         }
         this.updateStats();
         this.updateButtons();
     },
 
     updateStats() {
-        document.getElementById('proc-count').textContent = this.openApps.size;
+        const procCount = document.getElementById('proc-count');
+        if (procCount) procCount.textContent = this.openApps.size;
     },
 
     updateButtons() {
@@ -572,9 +1104,38 @@ const UI = {
 
     showPowerup(text) {
         const notify = document.getElementById('powerup-notify');
+        if (!notify) return;
+        
         notify.textContent = text;
         notify.style.display = 'block';
-        setTimeout(() => notify.style.display = 'none', 2000);
+        SoundManager.playPowerup();
+        
+        // Clear any existing timeout
+        if (this.powerupTimeout) clearTimeout(this.powerupTimeout);
+        this.powerupTimeout = setTimeout(() => {
+            notify.style.display = 'none';
+        }, 2000);
+    },
+
+    showNotification(text, duration = 3000) {
+        const notification = document.getElementById('notification');
+        if (!notification) return;
+        
+        notification.textContent = text;
+        notification.classList.add('show');
+        
+        if (this.notificationTimeout) clearTimeout(this.notificationTimeout);
+        this.notificationTimeout = setTimeout(() => {
+            notification.classList.remove('show');
+        }, duration);
+    },
+
+    closeUpdatePopup() {
+        const popup = document.getElementById('update-popup');
+        const overlay = document.getElementById('popup-overlay');
+        if (popup) popup.classList.remove('show');
+        if (overlay) overlay.classList.remove('show');
+        SoundManager.playClick();
     },
 
     checkAchievements() {
@@ -583,7 +1144,10 @@ const UI = {
             { id: 'survive60', time: 60, text: 'Veteran - Survived 60s' },
             { id: 'survive120', time: 120, text: 'Legend - Survived 120s' },
             { id: 'combo5', check: () => GameState.combo >= 5, text: 'Combo Master - 5x Multiplier' },
-            { id: 'multitask', check: () => this.openApps.size >= 3, text: 'Multitasker - 3 Apps Open' }
+            { id: 'multitask', check: () => this.openApps.size >= 3, text: 'Multitasker - 3 Apps Open' },
+            { id: 'snake10', check: () => typeof Snake !== 'undefined' && Snake.score >= 10, text: 'Snake Expert - 10 Points' },
+            { id: 'pong20', check: () => typeof Pong !== 'undefined' && Pong.score >= 20, text: 'Pong Master - 20 Points' },
+            { id: 'dodge50', check: () => typeof Dodge !== 'undefined' && Dodge.score >= 50, text: 'Dodge Legend - 50 Points' }
         ];
 
         achievements.forEach(ach => {
@@ -597,7 +1161,12 @@ const UI = {
                 GameState.achievements.add(ach.id);
                 this.showPowerup('🏆 ' + ach.text);
                 this.updateAchievementPanel();
-                localStorage.setItem('voidOsAchievements', JSON.stringify([...GameState.achievements]));
+                SoundManager.playSuccess();
+                try {
+                    localStorage.setItem('voidOsAchievements', JSON.stringify([...GameState.achievements]));
+                } catch (e) {
+                    console.warn('Could not save achievements:', e);
+                }
             }
         });
     },
@@ -664,189 +1233,417 @@ const World3D = {
     stalkerCore: null,
     stalkerAura: null,
     stalkerTendrils: [],
+    stalkerLight: null,
     particles: [],
     dist: 60, 
     isLive: true,
     warningThreshold: 12,
     criticalThreshold: 5,
+    frameCount: 0,
+    escapeMode: false,
+    escapeScene: null,
+    playerPosition: {x: 0, y: 1.7, z: 0},
+    playerVelocity: {x: 0, y: 0, z: 0},
+    playerRotation: {x: 0, y: 0},
+    keys: {},
+    exitDoor: null,
+    winTime: 0,
+    entityPushBackTime: 0,
 
     init() {
-        this.scene = new THREE.Scene();
-        this.scene.fog = new THREE.FogExp2(0x000000, 0.08);
-        
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        this.camera.position.set(0, 1.7, 5);
-
-        this.renderer = new THREE.WebGLRenderer({ antialias: false });
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('world-canvas').appendChild(this.renderer.domElement);
-
-        // Corridor
-        const corridorGeo = new THREE.BoxGeometry(10, 5, 200);
-        const corridorMat = new THREE.MeshStandardMaterial({ 
-            color: 0x0a0a0a, 
-            wireframe: true,
-            transparent: true,
-            opacity: 0.6
-        });
-        const corridor = new THREE.Mesh(corridorGeo, corridorMat);
-        corridor.position.z = -90;
-        this.scene.add(corridor);
-
-        // Stalker entity - multi-part horror
-        this.stalker = new THREE.Group();
-        
-        // Core body - pulsating mass
-        const core = new THREE.Mesh(
-            new THREE.IcosahedronGeometry(0.8, 1),
-            new THREE.MeshBasicMaterial({ 
-                color: 0xff0000,
-                wireframe: false
-            })
-        );
-        this.stalker.add(core);
-        
-        // Glowing eyes
-        const eyeGeo = new THREE.SphereGeometry(0.15, 8, 8);
-        const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-        
-        const eye1 = new THREE.Mesh(eyeGeo, eyeMat);
-        eye1.position.set(-0.3, 0.3, 0.6);
-        this.stalker.add(eye1);
-        
-        const eye2 = new THREE.Mesh(eyeGeo, eyeMat);
-        eye2.position.set(0.3, 0.3, 0.6);
-        this.stalker.add(eye2);
-        
-        // Spiky tendrils
-        for (let i = 0; i < 8; i++) {
-            const tendril = new THREE.Mesh(
-                new THREE.ConeGeometry(0.1, 1.5, 4),
-                new THREE.MeshBasicMaterial({ color: 0x880000 })
-            );
-            const angle = (i / 8) * Math.PI * 2;
-            tendril.position.set(Math.cos(angle) * 0.6, Math.sin(angle) * 0.6, -0.3);
-            tendril.rotation.set(Math.random(), Math.random(), Math.random());
-            this.stalker.add(tendril);
+        if (typeof THREE === 'undefined') {
+            console.error('Three.js not loaded. 3D features disabled.');
+            this.isLive = false;
+            return;
         }
         
-        // Outer glow/aura
-        const aura = new THREE.Mesh(
-            new THREE.SphereGeometry(1.2, 16, 16),
-            new THREE.MeshBasicMaterial({ 
-                color: 0xff0000,
+        try {
+            this.scene = new THREE.Scene();
+            this.scene.fog = new THREE.FogExp2(0x000000, 0.12);
+            
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            this.camera.position.set(0, 1.7, 5);
+
+            this.renderer = new THREE.WebGLRenderer({ antialias: false });
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+            const canvasContainer = document.getElementById('world-canvas');
+            if (canvasContainer) {
+                canvasContainer.appendChild(this.renderer.domElement);
+            }
+
+            // Corridor - darker, more menacing
+            const corridorGeo = new THREE.BoxGeometry(10, 5, 200);
+            const corridorMat = new THREE.MeshStandardMaterial({ 
+                color: 0x050505, 
+                wireframe: true,
                 transparent: true,
-                opacity: 0.15,
-                wireframe: true
-            })
-        );
-        this.stalker.add(aura);
-        
-        this.scene.add(this.stalker);
-        this.stalkerCore = core;
-        this.stalkerAura = aura;
-        this.stalkerTendrils = this.stalker.children.filter(c => c.geometry?.type === 'ConeGeometry');
+                opacity: 0.5
+            });
+            const corridor = new THREE.Mesh(corridorGeo, corridorMat);
+            corridor.position.z = -90;
+            this.scene.add(corridor);
 
-        // Ambient particles
-        for (let i = 0; i < 50; i++) {
-            const particle = new THREE.Mesh(
-                new THREE.BoxGeometry(0.1, 0.1, 0.1),
-                new THREE.MeshBasicMaterial({ color: 0x003300 })
+            // Stalker entity - enhanced horror design
+            this.stalker = new THREE.Group();
+            
+            // Core body - larger, darker, more menacing
+            const core = new THREE.Mesh(
+                new THREE.IcosahedronGeometry(1.2, 2),
+                new THREE.MeshBasicMaterial({ 
+                    color: 0x330000,
+                    wireframe: false
+                })
             );
-            particle.position.set(
-                (Math.random() - 0.5) * 20,
-                Math.random() * 5,
-                -Math.random() * 100
+            this.stalker.add(core);
+            
+            // Inner dark core - void-like center
+            const voidCore = new THREE.Mesh(
+                new THREE.SphereGeometry(0.4, 16, 16),
+                new THREE.MeshBasicMaterial({ 
+                    color: 0x000000,
+                    wireframe: false
+                })
             );
-            this.particles.push(particle);
-            this.scene.add(particle);
+            this.stalker.add(voidCore);
+            
+            // Glowing eyes - more menacing, larger
+            const eyeGeo = new THREE.SphereGeometry(0.2, 12, 12);
+            const eyeMat = new THREE.MeshBasicMaterial({ 
+                color: 0xff0000,
+                emissive: 0xff0000,
+                emissiveIntensity: 2
+            });
+            
+            const eye1 = new THREE.Mesh(eyeGeo, eyeMat);
+            eye1.position.set(-0.4, 0.4, 0.8);
+            this.stalker.add(eye1);
+            
+            const eye2 = new THREE.Mesh(eyeGeo, eyeMat);
+            eye2.position.set(0.4, 0.4, 0.8);
+            this.stalker.add(eye2);
+            
+            // Third eye in center - more disturbing
+            const eye3 = new THREE.Mesh(eyeGeo, eyeMat);
+            eye3.position.set(0, 0.5, 0.8);
+            eye3.scale.set(0.7, 0.7, 0.7);
+            this.stalker.add(eye3);
+            
+            // More spiky tendrils - increased count and size
+            for (let i = 0; i < 12; i++) {
+                const tendril = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.12, 2.0, 6),
+                    new THREE.MeshBasicMaterial({ 
+                        color: 0x440000,
+                        emissive: 0x220000
+                    })
+                );
+                const angle = (i / 12) * Math.PI * 2;
+                tendril.position.set(Math.cos(angle) * 0.8, Math.sin(angle) * 0.8, -0.5);
+                tendril.rotation.set(Math.random() * 0.5, Math.random() * 0.5, Math.random() * 0.5);
+                this.stalker.add(tendril);
+            }
+            
+            // Jagged spikes around the body
+            for (let i = 0; i < 16; i++) {
+                const spike = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.08, 0.6, 4),
+                    new THREE.MeshBasicMaterial({ color: 0x660000 })
+                );
+                const angle = (i / 16) * Math.PI * 2;
+                const height = Math.sin(angle * 2) * 0.3;
+                spike.position.set(Math.cos(angle) * 1.0, height, Math.sin(angle) * 0.3);
+                spike.rotation.z = angle;
+                this.stalker.add(spike);
+            }
+            
+            // Outer glow/aura - darker, more intense
+            const aura = new THREE.Mesh(
+                new THREE.SphereGeometry(1.8, 16, 16),
+                new THREE.MeshBasicMaterial({ 
+                    color: 0x660000,
+                    transparent: true,
+                    opacity: 0.25,
+                    wireframe: true
+                })
+            );
+            this.stalker.add(aura);
+            
+            // Additional dark energy field
+            const energyField = new THREE.Mesh(
+                new THREE.SphereGeometry(2.2, 20, 20),
+                new THREE.MeshBasicMaterial({ 
+                    color: 0x000000,
+                    transparent: true,
+                    opacity: 0.4,
+                    wireframe: true,
+                    side: THREE.DoubleSide
+                })
+            );
+            this.stalker.add(energyField);
+            
+            this.scene.add(this.stalker);
+            this.stalkerCore = core;
+            this.stalkerAura = aura;
+            this.stalkerTendrils = this.stalker.children.filter(c => 
+                c.geometry?.type === 'ConeGeometry' && c.position.z < 0
+            );
+
+            // Ambient particles - darker, more ominous
+            for (let i = 0; i < 50; i++) {
+                const particle = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.1, 0.1, 0.1),
+                    new THREE.MeshBasicMaterial({ 
+                        color: 0x001100,
+                        emissive: 0x000000
+                    })
+                );
+                particle.position.set(
+                    (Math.random() - 0.5) * 20,
+                    Math.random() * 5,
+                    -Math.random() * 100
+                );
+                this.particles.push(particle);
+                this.scene.add(particle);
+            }
+            
+            // Dark energy particles near stalker
+            for (let i = 0; i < 20; i++) {
+                const darkParticle = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.05, 6, 6),
+                    new THREE.MeshBasicMaterial({ 
+                        color: 0x330000,
+                        emissive: 0x110000,
+                        emissiveIntensity: 0.5
+                    })
+                );
+                darkParticle.position.set(
+                    (Math.random() - 0.5) * 3,
+                    (Math.random() - 0.5) * 3,
+                    -this.dist + (Math.random() - 0.5) * 2
+                );
+                this.particles.push(darkParticle);
+                this.scene.add(darkParticle);
+            }
+
+            // Ambient light - darker, more ominous
+            const ambient = new THREE.AmbientLight(0x001100, 0.2);
+            this.scene.add(ambient);
+            
+            // Red glow from stalker
+            const stalkerLight = new THREE.PointLight(0x660000, 0.5, 30);
+            stalkerLight.position.set(0, 1.4, -this.dist);
+            this.scene.add(stalkerLight);
+            
+            // Store light reference for animation
+            this.stalkerLight = stalkerLight;
+            
+            // Initialize escape mode variables
+            this.escapeMode = false;
+            this.keys = {};
+            this.entityPushBackTime = 0;
+
+            window.addEventListener('resize', () => this.onResize());
+            
+            this.animate();
+        } catch (error) {
+            console.error('Error initializing 3D world:', error);
+            this.isLive = false;
         }
-
-        // Ambient light
-        const ambient = new THREE.AmbientLight(0x003300, 0.3);
-        this.scene.add(ambient);
-
-        window.addEventListener('resize', () => this.onResize());
-        
-        this.animate();
     },
 
     onResize() {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        if (this.camera) {
+            this.camera.aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateProjectionMatrix();
+        }
+        if (this.renderer) {
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
     },
 
     animate() {
-        if (!this.isLive) return;
+        if (this.escapeMode) return; // Don't run main animation in escape mode
+        if (!this.isLive || !this.renderer || !this.scene || !this.camera) return;
         requestAnimationFrame(() => this.animate());
 
-        const speed = UI.openApps.size > 0 ? 0.02 : 0.008;
-        this.dist -= speed;
+        // Only update distance if not in escape mode
+        if (!this.escapeMode) {
+            const speed = UI.openApps.size > 0 ? 0.02 : 0.008;
+            this.dist -= speed;
+        }
         
-        // Stalker movement with disturbing animations
-        const time = Date.now() * 0.002;
-        this.stalker.position.set(
-            Math.sin(time) * 2, 
-            1.4 + Math.sin(time * 3) * 0.4, 
-            -this.dist
-        );
+        // Stalker movement with more disturbing, erratic animations (only if stalker exists)
+        if (this.stalker) {
+            const time = Date.now() * 0.002;
+            const proximity = Math.max(0, 1 - (this.dist / 60));
+            
+            // More erratic, jerky movement
+            this.stalker.position.set(
+                Math.sin(time) * 2.5 + Math.sin(time * 7) * 0.5, 
+                1.4 + Math.sin(time * 4) * 0.6 + Math.cos(time * 6) * 0.3, 
+                -this.dist
+            );
+            
+            // Core pulsating - more intense, irregular
+            if (this.stalkerCore) {
+                const pulse = 1 + Math.sin(time * 6) * 0.2 + Math.sin(time * 13) * 0.1;
+                this.stalkerCore.scale.set(pulse, pulse * 1.1, pulse);
+            }
+            
+            // More erratic, disturbing rotation
+            this.stalker.rotation.x += 0.04 + Math.sin(time * 3) * 0.02;
+            this.stalker.rotation.y += 0.06 + Math.cos(time * 5) * 0.02;
+            this.stalker.rotation.z = Math.sin(time * 2) * 0.1;
+            
+            // Tendrils writhing more violently
+            this.stalkerTendrils.forEach((tendril, i) => {
+                tendril.rotation.z = Math.sin(time * 4 + i) * 0.8;
+                tendril.rotation.x = Math.cos(time * 3 + i * 0.5) * 0.4;
+                tendril.scale.y = 1 + Math.sin(time * 5 + i * 0.5) * 0.4;
+                // Make tendrils reach out more when close
+                if (proximity > 0.5) {
+                    tendril.scale.y *= (1 + proximity * 0.3);
+                }
+            });
+            
+            // Aura intensity based on proximity - more dramatic
+            if (this.stalkerAura) {
+                const intensity = Math.max(0.2, proximity);
+                this.stalkerAura.material.opacity = intensity * 0.4;
+                this.stalkerAura.rotation.y += 0.03;
+                this.stalkerAura.rotation.x += 0.01;
+            }
+            
+            // Energy field pulsing
+            const energyField = this.stalker.children.find(c => c.geometry?.type === 'SphereGeometry' && c.material?.opacity === 0.4);
+            if (energyField) {
+                energyField.rotation.y -= 0.02;
+                energyField.rotation.z += 0.015;
+                energyField.material.opacity = 0.3 + Math.sin(time * 8) * 0.15;
+            }
+        }
         
-        // Core pulsating
-        const pulse = 1 + Math.sin(time * 5) * 0.15;
-        this.stalkerCore.scale.set(pulse, pulse, pulse);
+        // Update stalker light position and intensity (only if stalker exists)
+        if (this.stalkerLight && this.stalker) {
+            this.stalkerLight.position.set(
+                this.stalker.position.x,
+                this.stalker.position.y,
+                this.stalker.position.z
+            );
+            const lightIntensity = 0.3 + proximity * 0.7 + Math.sin(time * 5) * 0.2;
+            this.stalkerLight.intensity = lightIntensity;
+        }
         
-        // Erratic rotation
-        this.stalker.rotation.x += 0.03;
-        this.stalker.rotation.y += 0.05;
-        
-        // Tendrils writhing
-        this.stalkerTendrils.forEach((tendril, i) => {
-            tendril.rotation.z = Math.sin(time * 3 + i) * 0.5;
-            tendril.scale.y = 1 + Math.sin(time * 4 + i * 0.5) * 0.3;
-        });
-        
-        // Aura intensity based on proximity
-        const intensity = Math.max(0.1, 1 - (this.dist / 60));
-        this.stalkerAura.material.opacity = intensity * 0.3;
-        this.stalkerAura.rotation.y += 0.02;
-
-        // Update UI
-        const displayDist = Math.max(0, Math.floor(this.dist));
-        document.getElementById('dist-ui').innerText = displayDist;
-
-        // Warning states
-        const warning = document.getElementById('warning');
-        if (this.dist < this.criticalThreshold) {
-            warning.style.display = 'block';
-            warning.classList.add('glitch');
-        } else if (this.dist < this.warningThreshold) {
-            warning.style.display = 'block';
-            warning.classList.remove('glitch');
-        } else {
-            warning.style.display = 'none';
+        // Eyes glowing more intensely when close (only if stalker exists)
+        if (this.stalker) {
+            const eyes = this.stalker.children.filter(c => c.material?.emissive);
+            eyes.forEach((eye, i) => {
+                const glow = 2 + proximity * 3 + Math.sin(time * 10 + i) * 0.5;
+                eye.material.emissiveIntensity = glow;
+                // Eyes track player (subtle movement)
+                if (i < 3) {
+                    eye.rotation.y = Math.sin(time * 2 + i) * 0.2;
+                }
+            });
+            
+            // Spikes twitching
+            const spikes = this.stalker.children.filter(c => c.geometry?.type === 'ConeGeometry' && c.position.y < 0.5);
+            spikes.forEach((spike, i) => {
+                spike.rotation.z += 0.05 + Math.sin(time * 7 + i) * 0.03;
+                spike.scale.y = 1 + Math.sin(time * 6 + i * 0.3) * 0.2;
+            });
         }
 
-        // Particle animation
-        this.particles.forEach(p => {
-            p.position.z += 0.1;
-            if (p.position.z > 5) p.position.z = -100;
-            p.rotation.x += 0.01;
-            p.rotation.y += 0.01;
-        });
+        // Update UI (only if not in escape mode)
+        if (!this.escapeMode) {
+            const displayDist = Math.max(0, Math.floor(this.dist));
+            const distUI = document.getElementById('dist-ui');
+            if (distUI) distUI.innerText = displayDist;
+        }
 
-        // Death condition with shield
-        if (this.dist < 1.5) {
+        // Warning states with scary sounds (only if not in escape mode)
+        if (!this.escapeMode) {
+            const warning = document.getElementById('warning');
+            if (warning) {
+                const wasVisible = warning.style.display === 'block';
+                if (this.dist < this.criticalThreshold) {
+                    warning.style.display = 'block';
+                    warning.classList.add('glitch');
+                    if (!wasVisible) {
+                        if (typeof SoundManager !== 'undefined' && SoundManager.playEntityNear) {
+                            SoundManager.playEntityNear();
+                        }
+                    } else if (this.frameCount % 60 === 0) {
+                        // Play menacing sound periodically when very close
+                        if (typeof SoundManager !== 'undefined' && SoundManager.playEntityApproach) {
+                            SoundManager.playEntityApproach();
+                        }
+                    }
+                } else if (this.dist < this.warningThreshold) {
+                    warning.style.display = 'block';
+                    warning.classList.remove('glitch');
+                    if (!wasVisible) {
+                        if (typeof SoundManager !== 'undefined' && SoundManager.playEntityApproach) {
+                            SoundManager.playEntityApproach();
+                        }
+                    } else if (this.frameCount % 120 === 0) {
+                        // Occasional warning when approaching
+                        if (typeof SoundManager !== 'undefined' && SoundManager.playWarning) {
+                            SoundManager.playWarning();
+                        }
+                    }
+                } else {
+                    warning.style.display = 'none';
+                }
+            }
+        }
+
+        // Particle animation (throttled for performance) - only if not in escape mode
+        if (!this.escapeMode) {
+            this.frameCount = (this.frameCount || 0) + 1;
+            if (this.frameCount % 2 === 0) {
+                this.particles.forEach((p, i) => {
+                    if (i < 50) {
+                        // Regular particles
+                        p.position.z += 0.2;
+                        if (p.position.z > 5) p.position.z = -100;
+                        p.rotation.x += 0.02;
+                        p.rotation.y += 0.02;
+                    } else {
+                        // Dark energy particles around stalker
+                        const offset = i - 50;
+                        const angle = (time * 2 + offset * 0.3) % (Math.PI * 2);
+                        p.position.x = this.stalker.position.x + Math.cos(angle) * (1.5 + Math.sin(time * 3) * 0.3);
+                        p.position.y = this.stalker.position.y + Math.sin(angle * 2) * 0.8;
+                        p.position.z = this.stalker.position.z + Math.sin(angle) * 0.5;
+                        p.rotation.x += 0.05;
+                        p.rotation.y += 0.05;
+                        // Pulsing glow
+                        if (p.material.emissiveIntensity !== undefined) {
+                            p.material.emissiveIntensity = 0.3 + Math.sin(time * 8 + offset) * 0.3;
+                        }
+                    }
+                });
+            }
+        }
+
+        // Death condition with shield (only if not in escape mode)
+        if (!this.escapeMode && this.dist < 1.5) {
             if (GameState.shield > 0) {
                 GameState.shield = 0;
                 this.pushBack(20);
                 UI.showPowerup('🛡️ SHIELD ABSORBED IMPACT!');
+                if (typeof SoundManager !== 'undefined' && SoundManager.playHit) {
+                    SoundManager.playHit();
+                }
             } else {
                 this.fail("ENTITY CONTACT");
             }
         }
 
-        this.renderer.render(this.scene, this.camera);
+        if (!this.escapeMode && this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+        }
     },
 
     pushBack(amt) {
@@ -854,18 +1651,391 @@ const World3D = {
         GameState.combo = Math.min(10, GameState.combo + 0.1);
     },
 
-    fail(reason) {
+    win() {
         this.isLive = false;
-        document.getElementById('death-reason').textContent = reason;
-        document.getElementById('final-time').textContent = GameState.survivalTime;
+        this.winTime = GameState.survivalTime;
         
-        if (GameState.survivalTime > GameState.highScore) {
-            GameState.highScore = GameState.survivalTime;
-            localStorage.setItem('voidOsHighScore', GameState.highScore);
+        if (typeof SoundManager !== 'undefined' && SoundManager.playSuccess) {
+            SoundManager.playSuccess();
         }
         
-        document.getElementById('high-score').textContent = GameState.highScore;
-        document.getElementById('death-screen').style.display = 'flex';
+        // Hide desktop UI
+        const desktop = document.getElementById('desktop');
+        if (desktop) desktop.style.display = 'none';
+        
+        // Show win screen
+        const winScreen = document.getElementById('win-screen');
+        const winTimeEl = document.getElementById('win-time');
+        if (winScreen) winScreen.style.display = 'flex';
+        if (winTimeEl) winTimeEl.textContent = this.winTime;
+        
+        // Save high score
+        if (this.winTime > GameState.highScore) {
+            GameState.highScore = this.winTime;
+            try {
+                localStorage.setItem('voidOsHighScore', GameState.highScore);
+            } catch (e) {
+                console.warn('Could not save high score:', e);
+            }
+        }
+    },
+
+    startEscape() {
+        this.escapeMode = true;
+        this.isLive = false; // Stop main game loop
+        const winScreen = document.getElementById('win-screen');
+        if (winScreen) winScreen.style.display = 'none';
+        
+        // Hide desktop
+        const desktop = document.getElementById('desktop');
+        if (desktop) desktop.style.display = 'none';
+        
+        // Show escape HUD
+        const escapeHud = document.getElementById('escape-hud');
+        const escapeInstructions = document.getElementById('escape-instructions');
+        if (escapeHud) escapeHud.style.display = 'block';
+        if (escapeInstructions) escapeInstructions.style.display = 'block';
+        
+        // Initialize escape scene
+        this.initEscapeScene();
+        
+        // Setup controls
+        this.setupEscapeControls();
+        
+        // Start escape animation loop
+        setTimeout(() => {
+            this.animateEscape();
+        }, 100);
+        
+        if (typeof SoundManager !== 'undefined' && SoundManager.playPowerup) {
+            SoundManager.playPowerup();
+        }
+    },
+
+    initEscapeScene() {
+        if (typeof THREE === 'undefined') {
+            console.error('Three.js not available for escape mode');
+            return;
+        }
+        
+        // Clear old scene
+        if (this.scene) {
+            while(this.scene.children.length > 0) {
+                this.scene.remove(this.scene.children[0]);
+            }
+        } else {
+            this.scene = new THREE.Scene();
+        }
+        
+        this.scene.fog = new THREE.FogExp2(0x000000, 0.15);
+        
+        // First-person camera
+        if (!this.camera) {
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        }
+        this.camera.position.set(0, 1.7, 0);
+        this.playerPosition = {x: 0, y: 1.7, z: 0};
+        this.playerRotation = {x: 0, y: 0};
+        
+        // Ensure renderer exists
+        if (!this.renderer) {
+            this.renderer = new THREE.WebGLRenderer({ antialias: false });
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+            const canvasContainer = document.getElementById('world-canvas');
+            if (canvasContainer) {
+                canvasContainer.appendChild(this.renderer.domElement);
+            }
+        }
+        
+        // Basement floor
+        const floorGeo = new THREE.PlaneGeometry(100, 100);
+        const floorMat = new THREE.MeshStandardMaterial({ 
+            color: 0x1a1a1a,
+            roughness: 0.8
+        });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = 0;
+        this.scene.add(floor);
+        
+        // Basement walls
+        const wallMat = new THREE.MeshStandardMaterial({ 
+            color: 0x0a0a0a,
+            roughness: 0.9
+        });
+        
+        // Back wall
+        const backWall = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 10),
+            wallMat
+        );
+        backWall.position.set(0, 5, -50);
+        this.scene.add(backWall);
+        
+        // Side walls
+        const leftWall = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 10),
+            wallMat
+        );
+        leftWall.rotation.y = Math.PI / 2;
+        leftWall.position.set(-50, 5, 0);
+        this.scene.add(leftWall);
+        
+        const rightWall = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 10),
+            wallMat
+        );
+        rightWall.rotation.y = -Math.PI / 2;
+        rightWall.position.set(50, 5, 0);
+        this.scene.add(rightWall);
+        
+        // Ceiling
+        const ceiling = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 100),
+            new THREE.MeshStandardMaterial({ color: 0x050505 })
+        );
+        ceiling.rotation.x = Math.PI / 2;
+        ceiling.position.y = 10;
+        this.scene.add(ceiling);
+        
+        // Basement pillars
+        for (let i = 0; i < 8; i++) {
+            const pillar = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.5, 0.5, 10, 8),
+                new THREE.MeshStandardMaterial({ color: 0x151515 })
+            );
+            pillar.position.set(
+                (Math.random() - 0.5) * 80,
+                5,
+                (Math.random() - 0.5) * 80
+            );
+            this.scene.add(pillar);
+        }
+        
+        // Exit door - glowing green
+        const doorFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(3, 4, 0.5),
+            new THREE.MeshStandardMaterial({ color: 0x0a0a0a })
+        );
+        doorFrame.position.set(0, 2, 45);
+        this.scene.add(doorFrame);
+        
+        const door = new THREE.Mesh(
+            new THREE.PlaneGeometry(2.5, 3.5),
+            new THREE.MeshStandardMaterial({ 
+                color: 0x33ff00,
+                emissive: 0x33ff00,
+                emissiveIntensity: 2
+            })
+        );
+        door.position.set(0, 2, 45.1);
+        this.scene.add(door);
+        this.exitDoor = door;
+        
+        // Exit sign above door
+        const exitSign = new THREE.Mesh(
+            new THREE.PlaneGeometry(2, 0.5),
+            new THREE.MeshBasicMaterial({ 
+                color: 0x33ff00,
+                emissive: 0x33ff00,
+                emissiveIntensity: 3
+            })
+        );
+        exitSign.position.set(0, 4.5, 45);
+        this.scene.add(exitSign);
+        
+        // Ambient light - very dark
+        const ambient = new THREE.AmbientLight(0x001100, 0.1);
+        this.scene.add(ambient);
+        
+        // Point lights for atmosphere
+        for (let i = 0; i < 5; i++) {
+            const light = new THREE.PointLight(0x003300, 0.3, 20);
+            light.position.set(
+                (Math.random() - 0.5) * 60,
+                2,
+                (Math.random() - 0.5) * 60
+            );
+            this.scene.add(light);
+        }
+        
+        // Light near exit
+        const exitLight = new THREE.PointLight(0x33ff00, 1, 30);
+        exitLight.position.set(0, 3, 45);
+        this.scene.add(exitLight);
+    },
+
+    setupEscapeControls() {
+        // Keyboard controls
+        this.keys = {};
+        window.addEventListener('keydown', (e) => {
+            this.keys[e.key.toLowerCase()] = true;
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            this.keys[e.key.toLowerCase()] = false;
+        });
+        
+        // Mouse look
+        let isPointerLocked = false;
+        const canvas = this.renderer.domElement;
+        
+        canvas.addEventListener('click', () => {
+            canvas.requestPointerLock();
+        });
+        
+        document.addEventListener('pointerlockchange', () => {
+            isPointerLocked = document.pointerLockElement === canvas;
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isPointerLocked || !this.escapeMode) return;
+            
+            const sensitivity = 0.002;
+            this.playerRotation.y -= e.movementX * sensitivity;
+            this.playerRotation.x -= e.movementY * sensitivity;
+            this.playerRotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.playerRotation.x));
+        });
+    },
+
+    animateEscape() {
+        if (!this.escapeMode) return;
+        if (!this.renderer || !this.scene || !this.camera) {
+            console.warn('Escape mode: renderer/scene/camera not initialized');
+            return;
+        }
+        requestAnimationFrame(() => this.animateEscape());
+        
+        const speed = 0.15;
+        const moveVector = new THREE.Vector3();
+        
+        // Movement
+        if (this.keys['w']) moveVector.z -= 1;
+        if (this.keys['s']) moveVector.z += 1;
+        if (this.keys['a']) moveVector.x -= 1;
+        if (this.keys['d']) moveVector.x += 1;
+        
+        moveVector.normalize();
+        moveVector.multiplyScalar(speed);
+        
+        // Apply rotation to movement
+        const yaw = this.playerRotation.y;
+        const rotatedX = moveVector.x * Math.cos(yaw) - moveVector.z * Math.sin(yaw);
+        const rotatedZ = moveVector.x * Math.sin(yaw) + moveVector.z * Math.cos(yaw);
+        
+        this.playerPosition.x += rotatedX;
+        this.playerPosition.z += rotatedZ;
+        
+        // Update camera
+        this.camera.position.set(
+            this.playerPosition.x,
+            this.playerPosition.y,
+            this.playerPosition.z
+        );
+        this.camera.rotation.order = 'YXZ';
+        this.camera.rotation.y = this.playerRotation.y;
+        this.camera.rotation.x = this.playerRotation.x;
+        
+        // Check distance to exit
+        if (this.exitDoor) {
+            const dx = this.playerPosition.x - this.exitDoor.position.x;
+            const dz = this.playerPosition.z - this.exitDoor.position.z;
+            const distance = Math.sqrt(dx * dx + dz * dz);
+            
+            const exitDistanceEl = document.getElementById('exit-distance');
+            if (exitDistanceEl) {
+                exitDistanceEl.textContent = Math.floor(distance);
+            }
+            
+            // Win condition - reach the exit
+            if (distance < 2) {
+                this.escapeComplete();
+            }
+        }
+        
+        // Animate exit door pulsing
+        if (this.exitDoor && this.exitDoor.material) {
+            const time = Date.now() * 0.003;
+            this.exitDoor.material.emissiveIntensity = 2 + Math.sin(time) * 1;
+        }
+        
+        if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+        }
+    },
+
+    escapeComplete() {
+        this.escapeMode = false;
+        
+        // Hide escape UI
+        const escapeHud = document.getElementById('escape-hud');
+        const escapeInstructions = document.getElementById('escape-instructions');
+        if (escapeHud) escapeHud.style.display = 'none';
+        if (escapeInstructions) escapeInstructions.style.display = 'none';
+        
+        // Show victory screen
+        const victoryScreen = document.createElement('div');
+        victoryScreen.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--p-green);
+        `;
+        victoryScreen.innerHTML = `
+            <h1 style="font-size:5rem; letter-spacing:15px; margin-bottom:30px;">FREEDOM</h1>
+            <p style="font-size:1.5rem; margin-bottom:20px;">You escaped the basement.</p>
+            <p style="font-size:1rem; color:var(--p-amber);">Total Survival Time: ${this.winTime} seconds</p>
+            <p style="font-size:1rem; margin-top:10px;">High Score: ${GameState.highScore} seconds</p>
+            <button class="sys-btn" style="margin-top:40px; font-size:20px; padding:15px 40px;" onclick="location.reload()" onmousedown="SoundManager.playClick()">PLAY AGAIN</button>
+        `;
+        document.body.appendChild(victoryScreen);
+        
+        if (typeof SoundManager !== 'undefined' && SoundManager.playSuccess) {
+            SoundManager.playSuccess();
+            setTimeout(() => {
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        if (typeof SoundManager !== 'undefined' && SoundManager.playSuccess) {
+                            SoundManager.playSuccess();
+                        }
+                    }, i * 200);
+                }
+            }, 500);
+        }
+    },
+
+    fail(reason) {
+        this.isLive = false;
+        SoundManager.playGameOver();
+        
+        try {
+            const deathReason = document.getElementById('death-reason');
+            const finalTime = document.getElementById('final-time');
+            const highScore = document.getElementById('high-score');
+            const deathScreen = document.getElementById('death-screen');
+            
+            if (deathReason) deathReason.textContent = reason;
+            if (finalTime) finalTime.textContent = GameState.survivalTime;
+            
+            if (GameState.survivalTime > GameState.highScore) {
+                GameState.highScore = GameState.survivalTime;
+                try {
+                    localStorage.setItem('voidOsHighScore', GameState.highScore);
+                } catch (e) {
+                    console.warn('Could not save high score to localStorage:', e);
+                }
+            }
+            
+            if (highScore) highScore.textContent = GameState.highScore;
+            if (deathScreen) deathScreen.style.display = 'flex';
+        } catch (error) {
+            console.error('Error showing death screen:', error);
+        }
     }
 };
 
@@ -889,6 +2059,11 @@ const Terminal = {
     init() {
         this.out = document.getElementById('term-out');
         this.in = document.getElementById('term-in');
+        
+        if (!this.out || !this.in) {
+            console.warn('Terminal elements not found');
+            return;
+        }
         
         this.in.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -920,41 +2095,66 @@ const Terminal = {
     },
 
     print(msg) {
+        if (!this.out) return;
         this.out.innerHTML += "\n" + msg;
         this.out.scrollTop = this.out.scrollHeight;
     },
 
     exec(cmd) {
         const commands = {
-            'help': () => this.print("COMMANDS:\n  scan, clear, status, reboot, boost, recharge, info, stats"),
+            'help': () => this.print("COMMANDS:\n  scan, clear, status, reboot, boost, recharge, info, stats, pause, shortcuts"),
             'scan': () => {
                 this.print("PERIMETER SCAN INITIATED...");
                 this.art.forEach(line => this.print(line));
-                this.print(`ENTITY AT ${Math.floor(World3D.dist)}m | COMBO: x${GameState.combo.toFixed(1)}`);
+                const dist = typeof World3D !== 'undefined' ? Math.floor(World3D.dist) : 0;
+                const combo = typeof GameState !== 'undefined' ? GameState.combo.toFixed(1) : '1.0';
+                this.print(`ENTITY AT ${dist}m | COMBO: x${combo}`);
             },
-            'clear': () => this.out.innerHTML = "Terminal cleared.",
+            'clear': () => {
+                if (this.out) this.out.innerHTML = "Terminal cleared.";
+            },
             'status': () => {
-                this.print(`BATTERY: ${Math.floor(UI.power)}% | SHIELD: ${Math.floor(GameState.shield)}%`);
-                this.print(`ACTIVE_PROC: ${UI.openApps.size} | ENTITY: ${Math.floor(World3D.dist)}m`);
-                this.print(`SURVIVED: ${GameState.survivalTime}s | COMBO: x${GameState.combo.toFixed(1)}`);
+                const power = typeof UI !== 'undefined' ? Math.floor(UI.power) : 0;
+                const shield = typeof GameState !== 'undefined' ? Math.floor(GameState.shield) : 0;
+                const procCount = typeof UI !== 'undefined' ? UI.openApps.size : 0;
+                const dist = typeof World3D !== 'undefined' ? Math.floor(World3D.dist) : 0;
+                const time = typeof GameState !== 'undefined' ? GameState.survivalTime : 0;
+                const combo = typeof GameState !== 'undefined' ? GameState.combo.toFixed(1) : '1.0';
+                this.print(`BATTERY: ${power}% | SHIELD: ${shield}%`);
+                this.print(`ACTIVE_PROC: ${procCount} | ENTITY: ${dist}m`);
+                this.print(`SURVIVED: ${time}s | COMBO: x${combo}`);
             },
             'reboot': () => location.reload(),
             'boost': () => {
+                if (typeof UI === 'undefined' || typeof World3D === 'undefined') {
+                    this.print("ERROR: SYSTEM NOT INITIALIZED");
+                    SoundManager.playError();
+                    return;
+                }
                 if (UI.power >= 20) {
                     World3D.pushBack(15);
                     UI.power -= 20;
                     this.print("EMERGENCY REPULSOR ACTIVATED. -20% BATTERY");
+                    SoundManager.playPowerup();
                 } else {
                     this.print("ERROR: INSUFFICIENT POWER (20% REQUIRED)");
+                    SoundManager.playError();
                 }
             },
             'recharge': () => {
+                if (typeof UI === 'undefined' || typeof World3D === 'undefined') {
+                    this.print("ERROR: SYSTEM NOT INITIALIZED");
+                    SoundManager.playError();
+                    return;
+                }
                 if (UI.power < 100) {
                     UI.power = Math.min(100, UI.power + 25);
                     World3D.dist = Math.max(1, World3D.dist - 5);
                     this.print("BATTERY RECHARGED +25%. ENTITY ADVANCED 5m.");
+                    SoundManager.playSuccess();
                 } else {
                     this.print("BATTERY ALREADY AT FULL CAPACITY");
+                    SoundManager.playBeep(400, 0.1);
                 }
             },
             'info': () => {
@@ -963,9 +2163,27 @@ const Terminal = {
                 this.print("Build combos by playing games. Shield protects from entity.");
             },
             'stats': () => {
-                this.print(`HIGH SCORE: ${GameState.highScore}s`);
-                this.print(`ACHIEVEMENTS: ${GameState.achievements.size} unlocked`);
-                this.print(`CURRENT RUN: ${GameState.survivalTime}s`);
+                const highScore = typeof GameState !== 'undefined' ? GameState.highScore : 0;
+                const achievements = typeof GameState !== 'undefined' ? GameState.achievements.size : 0;
+                const time = typeof GameState !== 'undefined' ? GameState.survivalTime : 0;
+                this.print(`HIGH SCORE: ${highScore}s`);
+                this.print(`ACHIEVEMENTS: ${achievements} unlocked`);
+                this.print(`CURRENT RUN: ${time}s`);
+            },
+            'pause': () => {
+                if (typeof Snake !== 'undefined' && Snake.isRunning) Snake.togglePause();
+                if (typeof Pong !== 'undefined' && Pong.isRunning) Pong.togglePause();
+                if (typeof Dodge !== 'undefined' && Dodge.isRunning) Dodge.togglePause();
+                this.print("GAMES PAUSED/UNPAUSED");
+            },
+            'shortcuts': () => {
+                this.print("KEYBOARD SHORTCUTS:");
+                this.print("  Ctrl+1: Toggle Snake");
+                this.print("  Ctrl+2: Toggle Pong");
+                this.print("  Ctrl+3: Toggle Dodge");
+                this.print("  Ctrl+T: Toggle Terminal");
+                this.print("  Space: Pause/Unpause active game");
+                this.print("  ESC: Close popups / Pause all");
             }
         };
 
@@ -990,19 +2208,51 @@ const Snake = {
     score: 0,
     gridSize: 20,
     cellSize: 15,
+    isRunning: false,
+    isPaused: false,
 
     start() {
-        this.ctx = document.getElementById('can-snake').getContext('2d');
+        const canvas = document.getElementById('can-snake');
+        if (!canvas) return;
+        
+        this.ctx = canvas.getContext('2d');
+        if (!this.ctx) return;
+        
         this.snake = [{x:10, y:10}]; 
         this.dir = {x:1, y:0};
         this.score = 0;
+        this.isPaused = false;
+        this.isRunning = true;
         this.spawnApple();
         this.updateScore();
+        SoundManager.playBeep(500, 0.1);
         
-        window.addEventListener('keydown', (e) => this.handleInput(e));
+        // Remove old listener if exists
+        if (this.keyHandler) {
+            window.removeEventListener('keydown', this.keyHandler);
+        }
+        this.keyHandler = (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                this.togglePause();
+            } else {
+                this.handleInput(e);
+            }
+        };
+        window.addEventListener('keydown', this.keyHandler);
         
         if (this.timer) clearInterval(this.timer);
         this.timer = setInterval(() => this.loop(), 100);
+    },
+
+    togglePause() {
+        if (!this.isRunning) return;
+        this.isPaused = !this.isPaused;
+        const pauseEl = document.getElementById('snake-pause');
+        if (pauseEl) {
+            pauseEl.classList.toggle('show', this.isPaused);
+        }
+        SoundManager.playClick();
     },
 
     handleInput(e) {
@@ -1025,7 +2275,7 @@ const Snake = {
     },
 
     loop() {
-        if (!UI.openApps.has('snake')) return;
+        if (!UI.openApps.has('snake') || !this.isRunning || this.isPaused) return;
         
         const head = {
             x: this.snake[0].x + this.dir.x, 
@@ -1033,11 +2283,21 @@ const Snake = {
         };
 
         if (this.snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+            this.isRunning = false;
+            this.isPaused = false;
+            const pauseEl = document.getElementById('snake-pause');
+            if (pauseEl) pauseEl.classList.remove('show');
+            SoundManager.playError();
             this.start();
             return;
         }
 
         if (head.x < 0 || head.x >= this.gridSize || head.y < 0 || head.y >= this.gridSize) {
+            this.isRunning = false;
+            this.isPaused = false;
+            const pauseEl = document.getElementById('snake-pause');
+            if (pauseEl) pauseEl.classList.remove('show');
+            SoundManager.playError();
             this.start();
             return;
         }
@@ -1046,8 +2306,13 @@ const Snake = {
             this.score++;
             this.updateScore();
             this.spawnApple();
-            World3D.pushBack(5);
-            UI.power = Math.min(100, UI.power + 2);
+            SoundManager.playCollect();
+            if (typeof World3D !== 'undefined' && World3D.pushBack) {
+                World3D.pushBack(5);
+            }
+            if (typeof UI !== 'undefined') {
+                UI.power = Math.min(100, UI.power + 2);
+            }
         } else {
             this.snake.pop();
         }
@@ -1073,7 +2338,8 @@ const Snake = {
     },
 
     updateScore() {
-        document.getElementById('snake-score').textContent = this.score;
+        const scoreEl = document.getElementById('snake-score');
+        if (scoreEl) scoreEl.textContent = this.score;
     }
 };
 
@@ -1090,25 +2356,61 @@ const Pong = {
     score: 0,
     paddleHeight: 60,
     paddleWidth: 10,
+    isRunning: false,
+    isPaused: false,
 
     start() {
         const canvas = document.getElementById('can-pong');
+        if (!canvas) return;
+        
         this.ctx = canvas.getContext('2d');
+        if (!this.ctx) return;
+        
         this.score = 0;
         this.ball = {x:200, y:110, dx:4, dy:4};
+        this.isPaused = false;
+        this.isRunning = true;
         this.updateScore();
+        SoundManager.playBeep(500, 0.1);
         
-        canvas.addEventListener('mousemove', (e) => {
+        // Remove old listener if exists
+        if (this.mouseHandler) {
+            canvas.removeEventListener('mousemove', this.mouseHandler);
+        }
+        this.mouseHandler = (e) => {
+            if (this.isPaused) return;
             const rect = canvas.getBoundingClientRect();
             this.paddleY = Math.max(0, Math.min(e.clientY - rect.top - this.paddleHeight/2, 220 - this.paddleHeight));
-        });
+        };
+        canvas.addEventListener('mousemove', this.mouseHandler);
+        
+        if (this.keyHandler) {
+            window.removeEventListener('keydown', this.keyHandler);
+        }
+        this.keyHandler = (e) => {
+            if (e.key === ' ' && UI.openApps.has('pong')) {
+                e.preventDefault();
+                this.togglePause();
+            }
+        };
+        window.addEventListener('keydown', this.keyHandler);
         
         if (this.timer) clearInterval(this.timer);
         this.timer = setInterval(() => this.loop(), 16);
     },
 
+    togglePause() {
+        if (!this.isRunning) return;
+        this.isPaused = !this.isPaused;
+        const pauseEl = document.getElementById('pong-pause');
+        if (pauseEl) {
+            pauseEl.classList.toggle('show', this.isPaused);
+        }
+        SoundManager.playClick();
+    },
+
     loop() {
-        if (!UI.openApps.has('pong')) return;
+        if (!UI.openApps.has('pong') || !this.isRunning || this.isPaused) return;
         
         this.ball.x += this.ball.dx;
         this.ball.y += this.ball.dy;
@@ -1124,8 +2426,13 @@ const Pong = {
             this.ball.dy += (this.ball.y - (this.paddleY + this.paddleHeight/2)) * 0.1;
             this.score++;
             this.updateScore();
-            World3D.pushBack(3);
-            UI.power = Math.min(100, UI.power + 1);
+            SoundManager.playHit();
+            if (typeof World3D !== 'undefined' && World3D.pushBack) {
+                World3D.pushBack(3);
+            }
+            if (typeof UI !== 'undefined') {
+                UI.power = Math.min(100, UI.power + 1);
+            }
         }
         
         if (this.ball.x >= 385 && 
@@ -1171,7 +2478,8 @@ const Pong = {
     },
 
     updateScore() {
-        document.getElementById('pong-score').textContent = this.score;
+        const scoreEl = document.getElementById('pong-score');
+        if (scoreEl) scoreEl.textContent = this.score;
     }
 };
 
@@ -1188,28 +2496,64 @@ const Dodge = {
     lives: 3,
     spawnRate: 60,
     frameCount: 0,
+    isRunning: false,
+    isPaused: false,
 
     start() {
-        this.ctx = document.getElementById('can-dodge').getContext('2d');
+        const canvas = document.getElementById('can-dodge');
+        if (!canvas) return;
+        
+        this.ctx = canvas.getContext('2d');
+        if (!this.ctx) return;
+        
         this.player = {x: 150, y: 360, w: 20, h: 20};
         this.obstacles = [];
         this.score = 0;
         this.lives = 3;
         this.frameCount = 0;
+        this.isPaused = false;
+        this.isRunning = true;
         this.updateScore();
+        SoundManager.playBeep(500, 0.1);
         
-        const canvas = document.getElementById('can-dodge');
-        canvas.addEventListener('mousemove', (e) => {
+        // Remove old listener if exists
+        if (this.mouseHandler) {
+            canvas.removeEventListener('mousemove', this.mouseHandler);
+        }
+        this.mouseHandler = (e) => {
+            if (this.isPaused) return;
             const rect = canvas.getBoundingClientRect();
             this.player.x = Math.max(0, Math.min(e.clientX - rect.left - this.player.w/2, 300 - this.player.w));
-        });
+        };
+        canvas.addEventListener('mousemove', this.mouseHandler);
+        
+        if (this.keyHandler) {
+            window.removeEventListener('keydown', this.keyHandler);
+        }
+        this.keyHandler = (e) => {
+            if (e.key === ' ' && UI.openApps.has('dodge')) {
+                e.preventDefault();
+                this.togglePause();
+            }
+        };
+        window.addEventListener('keydown', this.keyHandler);
         
         if (this.timer) clearInterval(this.timer);
         this.timer = setInterval(() => this.loop(), 16);
     },
 
+    togglePause() {
+        if (!this.isRunning) return;
+        this.isPaused = !this.isPaused;
+        const pauseEl = document.getElementById('dodge-pause');
+        if (pauseEl) {
+            pauseEl.classList.toggle('show', this.isPaused);
+        }
+        SoundManager.playClick();
+    },
+
     loop() {
-        if (!UI.openApps.has('dodge')) return;
+        if (!UI.openApps.has('dodge') || !this.isRunning || this.isPaused) return;
         
         this.frameCount++;
         
@@ -1230,9 +2574,16 @@ const Dodge = {
                 this.lives--;
                 this.updateScore();
                 this.obstacles.splice(i, 1);
+                SoundManager.playError();
                 
                 if (this.lives <= 0) {
-                    UI.showPowerup('💀 DODGE FAILED!');
+                    if (typeof UI !== 'undefined' && UI.showPowerup) {
+                        UI.showPowerup('💀 DODGE FAILED!');
+                    }
+                    this.isRunning = false;
+                    this.isPaused = false;
+                    const pauseEl = document.getElementById('dodge-pause');
+                    if (pauseEl) pauseEl.classList.remove('show');
                     this.start();
                 }
             }
@@ -1241,7 +2592,10 @@ const Dodge = {
                 this.obstacles.splice(i, 1);
                 this.score++;
                 this.updateScore();
-                World3D.pushBack(2);
+                SoundManager.playCollect();
+                if (typeof World3D !== 'undefined' && World3D.pushBack) {
+                    World3D.pushBack(2);
+                }
                 
                 if (this.spawnRate > 20) {
                     this.spawnRate--;
@@ -1273,8 +2627,10 @@ const Dodge = {
     },
 
     updateScore() {
-        document.getElementById('dodge-score').textContent = this.score;
-        document.getElementById('dodge-lives').textContent = this.lives;
+        const scoreEl = document.getElementById('dodge-score');
+        const livesEl = document.getElementById('dodge-lives');
+        if (scoreEl) scoreEl.textContent = this.score;
+        if (livesEl) livesEl.textContent = this.lives;
     }
 };
 
@@ -1283,8 +2639,50 @@ const Dodge = {
 // =============================================================================
 
 window.onload = () => {
-    UI.init();
-    UI.updateAchievementPanel();
+    try {
+        // Initialize sound system first
+        if (typeof SoundManager !== 'undefined' && SoundManager.init) {
+            SoundManager.init();
+        }
+        
+        // Show update popup
+        const updatePopup = document.getElementById('update-popup');
+        const overlay = document.getElementById('popup-overlay');
+        if (updatePopup && overlay) {
+            updatePopup.classList.add('show');
+            overlay.classList.add('show');
+            // Auto-close after 10 seconds
+            setTimeout(() => {
+                if (updatePopup.classList.contains('show')) {
+                    UI.closeUpdatePopup();
+                }
+            }, 10000);
+        }
+        
+        // Initialize game state first
+        if (typeof GameState !== 'undefined' && GameState.init) {
+            GameState.init();
+        }
+        
+        // Then initialize UI
+        if (typeof UI !== 'undefined') {
+            UI.init();
+            UI.updateAchievementPanel();
+        }
+        
+        // Initialize audio context on first user interaction
+        document.addEventListener('click', () => {
+            if (SoundManager && !SoundManager.audioContext) {
+                SoundManager.getContext();
+            }
+        }, { once: true });
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        const errorMsg = document.createElement('div');
+        errorMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.9);color:var(--p-red);padding:20px;border:2px solid var(--p-red);z-index:99999;';
+        errorMsg.textContent = 'Failed to initialize. Please refresh the page.';
+        document.body.appendChild(errorMsg);
+    }
 };
 </script>
 </body>
